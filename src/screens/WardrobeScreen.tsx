@@ -70,7 +70,7 @@ function grouped(items: Garment[], by: GroupBy): { key: string; label: string; i
 }
 
 export function WardrobeScreen() {
-  const { garments, outfits, upsertGarment, setArchived, removeGarment, loadSample } = useStore()
+  const { garments, outfits, upsertGarment, setArchived, removeGarment } = useStore()
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Garment | null>(null)
   const [category, setCategory] = useState<Category | 'all'>('all')
@@ -262,13 +262,6 @@ export function WardrobeScreen() {
       {garments.length === 0 && (
         <div className="card px-4 py-8 text-sm">
           <p>Aucune pièce. Ajoute tes vêtements — 5 suffisent pour commencer.</p>
-          <button
-            type="button"
-            onClick={loadSample}
-            className="btn mt-3 focus-ring"
-          >
-            Charger 12 pièces d’exemple
-          </button>
         </div>
       )}
 

@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from 'react'
 import type { AppData, Garment, GarmentRemovalPlan, Outfit, Tag } from '../domain/types'
-import { sampleWardrobe } from '../data/sample'
 import { uid } from '../lib/ids'
 import { todayIso } from '../lib/dates'
 import { evaluateOutfit } from '../engine/evaluateOutfit'
@@ -50,7 +49,6 @@ type StoreValue = {
   clearEditOutfit: () => void
   exportData: () => void
   importData: (raw: string) => void
-  loadSample: () => void
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -216,13 +214,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setData(parseImport(raw))
   }, [])
 
-  const loadSample = useCallback(() => {
-    setData((prev) => ({
-      ...prev,
-      garments: prev.garments.length === 0 ? sampleWardrobe() : prev.garments,
-    }))
-  }, [])
-
   const value = useMemo<StoreValue>(
     () => ({
       garments: data.garments,
@@ -245,7 +236,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearEditOutfit: () => setEditingOutfitId(null),
       exportData,
       importData,
-      loadSample,
     }),
     [
       data,
@@ -263,7 +253,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteTag,
       exportData,
       importData,
-      loadSample,
     ],
   )
 

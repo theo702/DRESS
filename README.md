@@ -14,6 +14,9 @@ npm run dev
 
 Build de production : `npm run build` puis `npm run preview`.
 
+Déploiement Netlify (`https://dress-easy.netlify.app/`) : le dossier publié
+est `dist` (voir `netlify.toml`).
+
 Fonctionne hors-ligne une fois chargée (Vite + assets locaux, aucune police
 réseau).
 

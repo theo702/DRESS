@@ -56,7 +56,7 @@ describe('draftFromHtml', () => {
     expect(draft.category).toBe('top')
     expect(draft.subcategory).toBe('polo')
     expect(draft.brand).toBe('Uniqlo')
-    expect(draft.color).toBe('sauge')
+    expect(draft.color).toBe('kaki')
     expect(draft.material).toBe('coton')
     expect(draft.size).toBe('M')
     expect(draft.season).toContain('été')

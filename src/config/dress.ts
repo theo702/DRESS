@@ -62,6 +62,15 @@ export const PALETTE = [
     allowed: true,
   },
   {
+    id: 'kaki',
+    label: 'Kaki',
+    hex: '#6E7548',
+    family: 'vert',
+    lightness: 3,
+    isNearFaceSafe: true,
+    allowed: true,
+  },
+  {
     id: 'taupe',
     label: 'Taupe',
     hex: '#8B8178',

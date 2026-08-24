@@ -2,8 +2,12 @@ import { dataUrlFromBlob, dataUrlFromDataUrl } from './photo'
 import {
   draftFromHtml,
   draftFromImageUrl,
+  draftFromJina,
   draftFromMeta,
+  htmlLooksThin,
+  isGenericName,
   looksLikeImageUrl,
+  mergeProductDrafts,
   normalizeProductUrl,
   type ProductDraft,
 } from './productLink'
@@ -38,8 +42,26 @@ export async function importProductLink(raw: string): Promise<ImportedGarment> {
   }
 
   const html = resource.text ?? ''
-  if (!html.trim()) throw new Error('Page vide — rien à lire.')
-  const draft = draftFromHtml(html, resource.finalUrl || url)
+  let draft: ProductDraft = html.trim()
+    ? draftFromHtml(html, resource.finalUrl || url)
+    : { sourceUrl: url }
+
+  if (!html.trim() || htmlLooksThin(html) || !draft.imageUrl || isGenericName(draft.name ?? '')) {
+    const markdown = await tryJina(url)
+    if (markdown) {
+      const fromJina = draftFromJina(markdown, url)
+      draft = html.trim() && !htmlLooksThin(html) ? mergeProductDrafts(draft, fromJina) : fromJina
+    }
+  }
+
+  if (!draft.name && !draft.imageUrl) {
+    const meta = await tryMicrolink(url)
+    if (meta) draft = draftFromMeta(meta)
+  }
+
+  if (!draft.name && !draft.imageUrl) {
+    throw new Error('Impossible de lire ce lien (boutique bloquée ou hors-ligne).')
+  }
   return attachPhoto(draft)
 }
 
@@ -59,24 +81,7 @@ async function loadResource(url: string): Promise<ProxyPayload> {
 
   const html = await tryAllOrigins(url)
   if (html) return { ok: true, kind: 'html', finalUrl: url, text: html }
-
-  const meta = await tryMicrolink(url)
-  if (meta) {
-    const draft = draftFromMeta(meta)
-    return {
-      ok: true,
-      kind: 'html',
-      finalUrl: url,
-      text: `<html><head>
-        <meta property="og:title" content="${escapeAttr(draft.name ?? '')}" />
-        <meta property="og:image" content="${escapeAttr(draft.imageUrl ?? '')}" />
-        <meta property="og:description" content="${escapeAttr(meta.description ?? '')}" />
-        <meta property="og:site_name" content="${escapeAttr(meta.publisher ?? '')}" />
-      </head></html>`,
-    }
-  }
-
-  throw new Error('Impossible de lire ce lien (boutique bloquée ou hors-ligne).')
+  return { ok: false, kind: 'html', finalUrl: url, text: '' }
 }
 
 async function trySameOriginProxy(url: string): Promise<ProxyPayload | null> {
@@ -91,11 +96,32 @@ async function trySameOriginProxy(url: string): Promise<ProxyPayload | null> {
     }
     return null
   } catch (err) {
-    if (err instanceof Error && /pas public|invalide|http ou https|répond/i.test(err.message)) {
+    if (err instanceof Error && /pas public|invalide|http ou https/i.test(err.message)) {
       throw err
     }
     return null
   }
+}
+
+async function tryJina(url: string): Promise<string | null> {
+  const jinaUrl = `https://r.jina.ai/${url}`
+  try {
+    const res = await fetch(jinaUrl, { headers: { accept: 'text/plain' } })
+    if (res.ok) {
+      const text = await res.text()
+      if (/^Title:/m.test(text) || /Markdown Content:/i.test(text)) return text
+    }
+  } catch {
+    /* CORS or timeout */
+  }
+  const proxied = await trySameOriginProxy(jinaUrl)
+  if (
+    proxied?.text &&
+    (/^Title:/m.test(proxied.text) || /Markdown Content:/i.test(proxied.text))
+  ) {
+    return proxied.text
+  }
+  return null
 }
 
 async function tryAllOrigins(url: string): Promise<string | null> {
@@ -176,8 +202,4 @@ async function resizeMaybe(dataUrl: string): Promise<string> {
   } catch {
     return dataUrl
   }
-}
-
-function escapeAttr(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 }

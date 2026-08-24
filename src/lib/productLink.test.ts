@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   draftFromHtml,
   draftFromImageUrl,
+  draftFromJina,
   guessFields,
   isBlockedHost,
   looksLikeImageUrl,
@@ -93,6 +94,28 @@ describe('guessFields', () => {
     expect(g.subcategory).toBe('baskets')
     expect(g.color).toBe('blanc-casse')
     expect(g.formality).toBe(1)
+  })
+})
+
+describe('draftFromJina', () => {
+  it('reads title, type and a product photo not a color chip', () => {
+    const md = `Title: T-shirt 100% coton Supima® pour Unisexe | UNIQLO FR
+URL Source: https://www.uniqlo.com/fr/fr/products/E455365-000
+Markdown Content:
+# T-shirt 100% coton Supima®
+Coloris: 17 ROUGE
+![Image 1: ROUGE](https://image.uniqlo.com/chip/goods_17_chip.jpg)
+![Image 9: T-shirt 100% coton Supima®](https://image.uniqlo.com/UQ/ST3/eu/imagesgoods/455365/item/eugoods_17_455365_3x4.jpg?width=400)
+`
+    const draft = draftFromJina(md, 'https://www.uniqlo.com/fr/fr/products/E455365-000')
+    expect(draft.name).toBe('T-shirt 100% coton Supima®')
+    expect(draft.category).toBe('top')
+    expect(draft.subcategory).toBe('tee')
+    expect(draft.brand).toBe('Uniqlo')
+    expect(draft.material).toBe('coton')
+    expect(draft.formality).toBe(1)
+    expect(draft.imageUrl).toContain('/item/')
+    expect(draft.imageUrl).not.toContain('chip')
   })
 })
 

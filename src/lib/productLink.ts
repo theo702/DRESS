@@ -218,6 +218,80 @@ export function draftFromMeta(input: {
   }
 }
 
+export function draftFromJina(markdown: string, pageUrl: string): ProductDraft {
+  const title = markdown.match(/^Title:\s*(.+)$/m)?.[1]?.trim()
+  const source = markdown.match(/^URL Source:\s*(.+)$/m)?.[1]?.trim() ?? pageUrl
+  const heading = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim()
+  const colorLine =
+    markdown.match(/Coloris:\s*[^\n]+/i)?.[0] ??
+    markdown.match(/Couleur:\s*[^\n]+/i)?.[0] ??
+    markdown.match(/Colou?r:\s*[^\n]+/i)?.[0]
+  const images = [...markdown.matchAll(/!\[([^\]]*)\]\((https?:[^)\s]+)\)/g)].map((m) => ({
+    alt: m[1],
+    url: m[2],
+  }))
+  const blob = [heading, title, colorLine].filter(Boolean).join(' · ')
+  const guessed = guessFields(blob, source)
+  return {
+    sourceUrl: source,
+    ...guessed,
+    name: cleanName(heading || title || '', hostnameBrand(source)),
+    imageUrl: pickProductImage(images),
+  }
+}
+
+export function pickProductImage(images: Array<{ alt: string; url: string }>): string | undefined {
+  if (images.length === 0) return undefined
+  const ranked = images.map((img) => {
+    const u = img.url.toLowerCase()
+    let score = 0
+    if (/chip|logo|icon|favicon|sprite|pixel|1x1|tracking|badge|stylehint\.png/.test(u)) score -= 80
+    if (/\.svg(\?|$)/.test(u)) score -= 25
+    if (/\/item\/|_3x4|product|imagesgoods/.test(u)) score += 25
+    const width = Number(u.match(/[?&]width=(\d+)/)?.[1] ?? 0)
+    if (width >= 300) score += 12
+    if (img.alt && TYPE_HINTS.some((h) => h.re.test(img.alt))) score += 8
+    return { url: img.url, score }
+  })
+  ranked.sort((a, b) => b.score - a.score)
+  return (ranked.find((r) => r.score >= 0) ?? ranked[0])?.url
+}
+
+export function htmlLooksThin(html: string): boolean {
+  const lower = html.slice(0, 8000).toLowerCase()
+  if (/access denied|just a moment|attention required|captcha/.test(lower)) return true
+  if (/"@type"\s*:\s*"Product"/i.test(html)) return false
+  if (/property=["']og:image/i.test(html) || /name=["']og:image/i.test(html)) return false
+  return true
+}
+
+export function mergeProductDrafts(base: ProductDraft, extra: ProductDraft): ProductDraft {
+  return {
+    sourceUrl: extra.sourceUrl || base.sourceUrl,
+    name: preferName(base.name, extra.name),
+    category: extra.category ?? base.category,
+    subcategory: extra.subcategory ?? base.subcategory,
+    color: extra.color ?? base.color,
+    material: extra.material ?? base.material,
+    brand: extra.brand ?? base.brand,
+    size: extra.size ?? base.size,
+    season: extra.season ?? base.season,
+    formality: extra.formality ?? base.formality,
+    imageUrl: extra.imageUrl ?? base.imageUrl,
+  }
+}
+
+function preferName(a?: string, b?: string): string | undefined {
+  if (!b) return a
+  if (!a) return b
+  if (isGenericName(a) && !isGenericName(b)) return b
+  return a.length >= b.length ? a : b
+}
+
+export function isGenericName(name: string): boolean {
+  return /lifewear|accueil|\bhome\b|clothing|vêtements|access denied/i.test(name)
+}
+
 export function guessFields(text: string, pageUrl?: string): Omit<ProductDraft, 'sourceUrl'> {
   const typeHit = TYPE_HINTS.find((h) => h.re.test(text))
   const category = typeHit?.category

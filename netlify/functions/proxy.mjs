@@ -1,6 +1,5 @@
 const MAX_HTML = 512_000
 const MAX_IMAGE = 1_500_000
-const TIMEOUT_MS = 8000
 
 export function isBlockedHost(hostname) {
   const h = String(hostname ?? '')
@@ -33,9 +32,10 @@ export function assertPublicHttpUrl(raw) {
 
 export async function fetchPublic(raw) {
   const parsed = assertPublicHttpUrl(raw)
+  const jina = parsed.hostname === 'r.jina.ai'
   const res = await fetch(parsed.toString(), {
     redirect: 'follow',
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    signal: AbortSignal.timeout(jina ? 15000 : 8000),
     headers: {
       accept:
         'text/html,application/xhtml+xml,application/json,image/avif,image/webp,image/*,*/*;q=0.8',

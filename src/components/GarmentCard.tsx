@@ -1,4 +1,4 @@
-import { CATEGORY_LABELS, FORMALITY_LABELS, getColor } from '../config/dress'
+import { CATEGORY_LABELS, FORMALITY_LABELS, MOMENT_LABELS, getColor } from '../config/dress'
 import type { Garment } from '../domain/types'
 import { cx } from '../lib/cx'
 import { ColorDot } from './ColorPicker'
@@ -24,6 +24,13 @@ export function GarmentCard({
 }: Props) {
   const color = getColor(garment.color)
   const interactive = Boolean(onSelect)
+  const isFragrance = garment.category === 'fragrance'
+  const momentLabel = (garment.moments ?? ['journée', 'soirée'])
+    .map((m) => MOMENT_LABELS[m] ?? m)
+    .join(', ')
+  const usage = isFragrance
+    ? `${garment.season.join(', ')} · ${momentLabel}`
+    : `${garment.season.join(', ')} · ${FORMALITY_LABELS[garment.formality]}`
 
   return (
     <article
@@ -42,19 +49,26 @@ export function GarmentCard({
           interactive ? 'cursor-pointer' : 'cursor-default',
         )}
         aria-pressed={interactive ? selected : undefined}
-        aria-label={`${garment.name}, ${CATEGORY_LABELS[garment.category]}, ${color?.label ?? garment.color}`}
+        aria-label={`${garment.name}, ${CATEGORY_LABELS[garment.category]}, ${isFragrance ? usage : (color?.label ?? garment.color)}`}
       >
         <div
           className={cx('relative w-full overflow-hidden', compact ? 'h-20' : 'h-36')}
-          style={{ backgroundColor: color?.hex ?? '#ddd' }}
+          style={{ backgroundColor: isFragrance ? undefined : (color?.hex ?? '#ddd') }}
         >
+          {isFragrance && !garment.photoDataUrl && (
+            <span className="flex h-full items-center justify-center bg-fill text-[11px] uppercase tracking-[0.14em] text-muted">
+              Parfum
+            </span>
+          )}
           {garment.photoDataUrl && (
             <img src={garment.photoDataUrl} alt="" className="h-full w-full object-cover" />
           )}
-          <span className="absolute bottom-2 left-2">
-            <ColorDot colorId={garment.color} size={14} />
-          </span>
-          {!color?.allowed && (
+          {!isFragrance && (
+            <span className="absolute bottom-2 left-2">
+              <ColorDot colorId={garment.color} size={14} />
+            </span>
+          )}
+          {!isFragrance && !color?.allowed && (
             <span className="absolute right-2 top-2 rounded-full border border-line bg-paper-2 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink">
               interdite
             </span>
@@ -66,13 +80,9 @@ export function GarmentCard({
             {garment.subcategory}
             {garment.brand ? ` · ${garment.brand}` : ''}
             {garment.size ? ` · ${garment.size}` : ''}
+            {isFragrance ? ` · ${momentLabel}` : ''}
           </p>
-          {!compact && (
-            <p className="truncate text-[11px] text-muted">
-              {garment.season.join(', ')}
-              {` · ${FORMALITY_LABELS[garment.formality]}`}
-            </p>
-          )}
+          {!compact && <p className="truncate text-[11px] text-muted">{usage}</p>}
         </div>
       </button>
       {(onEdit || onArchive || onDelete) && (

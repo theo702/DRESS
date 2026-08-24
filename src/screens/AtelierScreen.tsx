@@ -4,7 +4,7 @@ import type { Category, Garment } from '../domain/types'
 import { GarmentCard } from '../components/GarmentCard'
 import { OutfitPreview } from '../components/OutfitPreview'
 import { TagPicker } from '../components/TagPicker'
-import { evaluateOutfit, placeGarment, wouldKeepScore } from '../engine/evaluateOutfit'
+import { evaluateOutfit, fragranceMatches, placeGarment, wouldKeepScore } from '../engine/evaluateOutfit'
 import { cx } from '../lib/cx'
 import { useStore } from '../state/Store'
 
@@ -55,6 +55,15 @@ export function AtelierScreen() {
   }
 
   const accessories = visibleInColumn('accessory')
+  const usageLabels = tagIds
+    .map((id) => tags.find((t) => t.id === id)?.label ?? '')
+    .filter(Boolean)
+  const fragrances = active.filter((g) => {
+    if (g.category !== 'fragrance') return false
+    if (!compatibleOnly) return true
+    if (selected.some((s) => s.id === g.id)) return true
+    return fragranceMatches(g, selected, usageLabels)
+  })
 
   function onSave() {
     if (!selected.some((g) => g.category === 'top') || !selected.some((g) => g.category === 'bottom')) {
@@ -157,6 +166,23 @@ export function AtelierScreen() {
               )
             })}
           </div>
+
+          {fragrances.length > 0 && (
+            <section className="mt-4">
+              <h2 className="kicker mb-2">Parfums</h2>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                {fragrances.map((g) => (
+                  <GarmentCard
+                    key={g.id}
+                    garment={g}
+                    compact
+                    selected={selected.some((s) => s.id === g.id)}
+                    onSelect={() => toggle(g)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
           {accessories.length > 0 && (
             <section className="mt-4">

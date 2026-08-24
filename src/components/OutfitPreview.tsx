@@ -15,13 +15,15 @@ export function OutfitPreview({ garments, evaluation }: Props) {
     (g): g is Garment => Boolean(g),
   )
   const accessories = garments.filter((g) => g.category === 'accessory')
+  const fragrances = garments.filter((g) => g.category === 'fragrance')
+  const extras = [...accessories, ...fragrances]
 
   return (
     <div className="card">
       <div className="border-b border-line px-3 py-2.5">
         <p className="kicker">Aperçu</p>
       </div>
-      {stacked.length === 0 && accessories.length === 0 ? (
+      {stacked.length === 0 && extras.length === 0 ? (
         <p className="px-3 py-6 text-sm text-muted">Clique une pièce pour la placer.</p>
       ) : (
         <div>
@@ -46,20 +48,27 @@ export function OutfitPreview({ garments, evaluation }: Props) {
               </div>
             )
           })}
-          {accessories.length > 0 && (
+          {extras.length > 0 && (
             <div className="flex flex-wrap gap-1 border-t border-line px-2 py-2">
-              {accessories.map((g) => {
+              {extras.map((g) => {
                 const color = getColor(g.color)
                 return (
                   <span
                     key={g.id}
                     className="chip"
                   >
+                    {g.category !== 'fragrance' && (
                     <span
                       className="inline-block h-2.5 w-2.5 rounded-full border border-line"
                       style={{ backgroundColor: color?.hex }}
                     />
+                    )}
                     {g.name}
+                    {g.category === 'fragrance' && (
+                      <span className="text-muted">
+                        {(g.moments ?? []).join(' · ') || 'parfum'}
+                      </span>
+                    )}
                   </span>
                 )
               })}

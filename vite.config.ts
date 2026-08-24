@@ -23,6 +23,7 @@ function productProxy(): Plugin {
         res.end(JSON.stringify({ ok: false, error: 'Paramètre url manquant.' }))
         return
       }
+      // @ts-expect-error Netlify function is untyped JS; a .d.mts sibling broke the function name.
       const mod = (await import('./netlify/functions/proxy.mjs')) as { fetchPublic: ProxyFn }
       const result = await mod.fetchPublic(target)
       res.statusCode = 200

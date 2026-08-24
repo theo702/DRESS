@@ -337,6 +337,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   layer: 'Couche',
   shoes: 'Chaussures',
   accessory: 'Accessoire',
+  fragrance: 'Parfum',
 }
 
 export const ATELIER_COLUMNS = ['top', 'bottom', 'layer', 'shoes'] as const
@@ -347,6 +348,7 @@ export const SUBCATEGORIES: Record<string, string[]> = {
   layer: ['pull', 'surchemise', 'veste', 'cardigan', 'blazer', 'manteau'],
   shoes: ['baskets', 'boots', 'espadrilles', 'derbies', 'mocassins', 'sandales'],
   accessory: ['ceinture', 'montre', 'écharpe', 'lunettes', 'bonnet'],
+  fragrance: ['eau de parfum', 'eau de toilette', 'cologne', 'extrait'],
 }
 
 export const MATERIALS = [
@@ -360,6 +362,30 @@ export const MATERIALS = [
   'daim',
   'viscose',
   'nylon',
+]
+
+export const SCENT_FAMILIES = [
+  'hespéridé',
+  'aquatique',
+  'floral',
+  'aromatique',
+  'boisé',
+  'oriental',
+  'épicé',
+  'fougère',
+]
+
+export const FRAGRANCE_BRANDS = [
+  'Chanel',
+  'Dior',
+  'Hermès',
+  'Guerlain',
+  'Diptyque',
+  'Aesop',
+  'Le Labo',
+  'Byredo',
+  'Frédéric Malle',
+  'Maison Margiela',
 ]
 
 export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44', 'unique']
@@ -383,6 +409,13 @@ export const SEASON_LABELS: Record<string, string> = {
   hiver: 'Hiver',
 }
 
+export const MOMENT_LABELS: Record<string, string> = {
+  journée: 'Journée',
+  soirée: 'Soirée',
+}
+
+export const ALL_MOMENTS = ['journée', 'soirée'] as const
+
 export const FORMALITY_LABELS: Record<1 | 2 | 3, string> = {
   1: 'Casual',
   2: 'Smart casual',
@@ -405,7 +438,7 @@ export const MONTH_TO_SEASON: Record<number, 'été' | 'mi-saison' | 'hiver'> = 
 }
 
 export const STORAGE_KEY = 'dress.v1'
-export const DATA_VERSION = 2 as const
+export const DATA_VERSION = 3 as const
 
 export const DEFAULT_TAGS: { id: string; label: string }[] = [
   { id: 'ete', label: 'été' },

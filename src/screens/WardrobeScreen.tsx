@@ -2,19 +2,28 @@ import { useMemo, useState } from 'react'
 import {
   CATEGORY_LABELS,
   FORMALITY_LABELS,
+  MOMENT_LABELS,
   PALETTE,
   SEASON_LABELS,
   getColor,
 } from '../config/dress'
-import type { Category, Formality, Garment, Season } from '../domain/types'
+import type { Category, Formality, Garment, Moment, Season } from '../domain/types'
 import { GarmentCard } from '../components/GarmentCard'
 import { GarmentForm } from '../components/GarmentForm'
 import { ReplaceGarmentDialog } from '../components/ReplaceGarmentDialog'
 import { useStore } from '../state/Store'
 
-const CATEGORIES: Array<Category | 'all'> = ['all', 'top', 'bottom', 'layer', 'shoes', 'accessory']
+const CATEGORIES: Array<Category | 'all'> = [
+  'all',
+  'top',
+  'bottom',
+  'layer',
+  'shoes',
+  'accessory',
+  'fragrance',
+]
 
-type GroupBy = 'none' | 'type' | 'color' | 'brand' | 'season' | 'size'
+type GroupBy = 'none' | 'type' | 'color' | 'brand' | 'season' | 'moment' | 'size'
 type PhotoFilter = 'all' | 'with' | 'without'
 
 const GROUP_LABELS: Record<GroupBy, string> = {
@@ -23,12 +32,14 @@ const GROUP_LABELS: Record<GroupBy, string> = {
   color: 'Couleur',
   brand: 'Marque',
   season: 'Saison',
+  moment: 'Journée / soirée',
   size: 'Taille',
 }
 
 function groupLabel(by: GroupBy, key: string): string {
   if (by === 'color') return getColor(key)?.label ?? key
   if (by === 'season') return SEASON_LABELS[key] ?? key
+  if (by === 'moment') return MOMENT_LABELS[key] ?? key
   return key
 }
 
@@ -48,6 +59,9 @@ function grouped(items: Garment[], by: GroupBy): { key: string; label: string; i
     else if (by === 'season') {
       if (g.season.length === 0) push('Sans saison', g)
       else for (const s of g.season) push(s, g)
+    } else if (by === 'moment') {
+      const moments = g.moments?.length ? g.moments : (['journée', 'soirée'] as Moment[])
+      for (const m of moments) push(m, g)
     }
   }
   return [...map.entries()]
@@ -63,6 +77,7 @@ export function WardrobeScreen() {
   const [type, setType] = useState('all')
   const [color, setColor] = useState<string>('all')
   const [season, setSeason] = useState<Season | 'all'>('all')
+  const [moment, setMoment] = useState<Moment | 'all'>('all')
   const [formality, setFormality] = useState<Formality | 'all'>('all')
   const [size, setSize] = useState('all')
   const [brand, setBrand] = useState('all')
@@ -78,6 +93,7 @@ export function WardrobeScreen() {
       if (type !== 'all' && g.subcategory !== type) return false
       if (color !== 'all' && g.color !== color) return false
       if (season !== 'all' && !g.season.includes(season)) return false
+      if (moment !== 'all' && !(g.moments ?? ['journée', 'soirée']).includes(moment)) return false
       if (formality !== 'all' && g.formality !== formality) return false
       if (size !== 'all' && g.size !== size) return false
       if (brand !== 'all' && g.brand !== brand) return false
@@ -85,7 +101,7 @@ export function WardrobeScreen() {
       if (photo === 'without' && g.photoDataUrl) return false
       return true
     })
-  }, [garments, showArchived, category, type, color, season, formality, size, brand, photo])
+  }, [garments, showArchived, category, type, color, season, moment, formality, size, brand, photo])
 
   const sections = useMemo(() => grouped(filtered, groupBy), [filtered, groupBy])
   const activeCount = garments.filter((g) => !g.archived).length
@@ -96,7 +112,8 @@ export function WardrobeScreen() {
         <div>
           <h1 className="page-title">Mes vêtements</h1>
           <p className="text-xs text-muted">
-            Classées par type, couleur, marque, taille, saison et photo.
+            Classées par type, couleur, marque, taille, saison, photo — les parfums aussi, avec
+            journée / soirée.
             {' '}
             {activeCount} pièce{activeCount === 1 ? '' : 's'} active{activeCount === 1 ? '' : 's'}
             {garments.some((g) => g.archived) ? ` · ${garments.filter((g) => g.archived).length} archivée(s)` : ''}
@@ -167,6 +184,15 @@ export function WardrobeScreen() {
           options={[
             { value: 'all', label: 'Toutes' },
             ...Object.entries(SEASON_LABELS).map(([k, label]) => ({ value: k, label })),
+          ]}
+        />
+        <FilterSelect
+          label="Moment"
+          value={moment}
+          onChange={(v) => setMoment(v as Moment | 'all')}
+          options={[
+            { value: 'all', label: 'Tous' },
+            ...Object.entries(MOMENT_LABELS).map(([k, label]) => ({ value: k, label })),
           ]}
         />
         <FilterSelect

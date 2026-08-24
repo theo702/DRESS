@@ -21,7 +21,7 @@ export function colorDistribution(garments: Garment[]): ColorShare[] {
 
 export function categoryDistribution(garments: Garment[]): CategoryShare[] {
   const active = garments.filter((g) => !g.archived)
-  const ids = ['top', 'bottom', 'layer', 'shoes', 'accessory']
+  const ids = ['top', 'bottom', 'layer', 'shoes', 'accessory', 'fragrance']
   return ids.map((id) => ({
     id,
     label: CATEGORY_LABELS[id] ?? id,

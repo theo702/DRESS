@@ -1,5 +1,5 @@
-import type { AppData, Garment, Outfit, Tag } from '../domain/types'
-import { DATA_VERSION, DEFAULT_TAGS, STORAGE_KEY } from '../config/dress'
+import type { AppData, Garment, Moment, Outfit, Tag } from '../domain/types'
+import { ALL_MOMENTS, DATA_VERSION, DEFAULT_TAGS, STORAGE_KEY } from '../config/dress'
 
 const empty = (): AppData => ({
   version: DATA_VERSION,
@@ -11,7 +11,13 @@ const empty = (): AppData => ({
 
 export function migrate(raw: unknown): AppData {
   const parsed = raw as Partial<AppData> & { version?: number }
-  const garments = Array.isArray(parsed.garments) ? parsed.garments : []
+  const garments = (Array.isArray(parsed.garments) ? parsed.garments : []).map((raw) => {
+    const moments: Moment[] =
+      Array.isArray(raw.moments) && raw.moments.length > 0
+        ? raw.moments.filter((m: string): m is Moment => m === 'journée' || m === 'soirée')
+        : [...ALL_MOMENTS]
+    return { ...raw, moments: moments.length > 0 ? moments : [...ALL_MOMENTS] }
+  })
   const wearLogs = Array.isArray(parsed.wearLogs) ? parsed.wearLogs : []
   const tags: Tag[] =
     Array.isArray(parsed.tags) && parsed.tags.length > 0

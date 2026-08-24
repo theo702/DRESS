@@ -1,5 +1,5 @@
-import { BRANDS, MATERIALS, PALETTE, SUBCATEGORIES } from '../config/dress'
-import type { Category, Formality, Season } from '../domain/types'
+import { BRANDS, FRAGRANCE_BRANDS, MATERIALS, PALETTE, SCENT_FAMILIES, SUBCATEGORIES } from '../config/dress'
+import type { Category, Formality, Moment, Season } from '../domain/types'
 
 export type ProductDraft = {
   name?: string
@@ -10,6 +10,7 @@ export type ProductDraft = {
   brand?: string
   size?: string
   season?: Season[]
+  moments?: Moment[]
   formality?: Formality
   imageUrl?: string
   sourceUrl: string
@@ -41,6 +42,10 @@ const TYPE_HINTS: Array<{ re: RegExp; category: Category; type: string }> = [
   { re: wordRe('derbies?'), category: 'shoes', type: 'derbies' },
   { re: wordRe('mocassins?|loafers?'), category: 'shoes', type: 'mocassins' },
   { re: wordRe('sandales?|sandals?'), category: 'shoes', type: 'sandales' },
+  { re: wordRe('eau de parfum'), category: 'fragrance', type: 'eau de parfum' },
+  { re: wordRe('eau de toilette'), category: 'fragrance', type: 'eau de toilette' },
+  { re: wordRe('colognes?'), category: 'fragrance', type: 'cologne' },
+  { re: wordRe('parfums?|perfumes?|fragrances?'), category: 'fragrance', type: 'eau de parfum' },
   { re: wordRe('ceintures?|belts?'), category: 'accessory', type: 'ceinture' },
   { re: wordRe('montres?|watches?'), category: 'accessory', type: 'montre' },
   { re: wordRe('écharpes?|echarpes?|scar(?:f|ves)'), category: 'accessory', type: 'écharpe' },
@@ -86,6 +91,14 @@ const MATERIAL_ALIASES: Array<{ re: RegExp; id: string }> = [
   { re: /\bsuede\b|\bdaim\b/i, id: 'daim' },
   { re: /\bviscose\b/i, id: 'viscose' },
   { re: /\bnylon\b/i, id: 'nylon' },
+  { re: /\bcitrus\b|\bhespérid|\bhesperid/i, id: 'hespéridé' },
+  { re: /\baquatic|\baquatique\b/i, id: 'aquatique' },
+  { re: /\bfloral\b/i, id: 'floral' },
+  { re: /\baromatique\b|\baromatic\b/i, id: 'aromatique' },
+  { re: /\bwoody\b|\bboisé\b|\bboise\b/i, id: 'boisé' },
+  { re: /\boriental\b/i, id: 'oriental' },
+  { re: /\bspicy\b|\bépicé\b|\bepice\b/i, id: 'épicé' },
+  { re: /\bfougère\b|\bfougere\b/i, id: 'fougère' },
 ]
 
 const HOST_BRANDS: Array<{ re: RegExp; brand: string }> = [
@@ -99,6 +112,11 @@ const HOST_BRANDS: Array<{ re: RegExp; brand: string }> = [
   { re: /(^|\.)mango\./i, brand: 'Mango' },
   { re: /(^|\.)massimodutti\./i, brand: 'Massimo Dutti' },
   { re: /(^|\.)levi'?s?\./i, brand: 'Levi’s' },
+  { re: /(^|\.)chanel\./i, brand: 'Chanel' },
+  { re: /(^|\.)dior\./i, brand: 'Dior' },
+  { re: /(^|\.)hermes\./i, brand: 'Hermès' },
+  { re: /(^|\.)guerlain\./i, brand: 'Guerlain' },
+  { re: /(^|\.)diptyque\./i, brand: 'Diptyque' },
 ]
 
 const IMAGE_EXT = /\.(avif|gif|jpe?g|png|webp)(\?|#|$)/i
@@ -313,14 +331,27 @@ export function guessFields(text: string, pageUrl?: string): Omit<ProductDraft, 
     seasons.add('hiver')
   }
 
+  let moments: Moment[] | undefined
+  if (category === 'fragrance') {
+    formality = undefined
+    const m = new Set<Moment>()
+    if (wordRe('soirée|evening|night').test(text)) m.add('soirée')
+    if (wordRe('journée|daytime|fresh|citrus|hespérid').test(text)) m.add('journée')
+    moments = m.size > 0 ? [...m] : ['journée', 'soirée']
+    if (seasons.size === 0 && wordRe('citrus|hespérid|aquatique|fresh|frais').test(text)) {
+      seasons.add('été')
+    }
+  }
+
   return {
     category,
     subcategory,
     color: matchColor(text),
     material: matchMaterial(text),
     brand: matchBrand(text) ?? (pageUrl ? hostnameBrand(pageUrl) : undefined),
-    size: matchSize(text),
+    size: category === 'fragrance' ? undefined : matchSize(text),
     season: seasons.size > 0 ? [...seasons] : undefined,
+    moments,
     formality,
   }
 }
@@ -336,11 +367,16 @@ function matchColor(text: string): string | undefined {
 function matchMaterial(text: string): string | undefined {
   const alias = MATERIAL_ALIASES.find((m) => m.re.test(text))
   if (alias) return alias.id
+  const scent = SCENT_FAMILIES.find((m) => wordRe(escapeReg(m)).test(text))
+  if (scent) return scent
   return MATERIALS.find((m) => wordRe(escapeReg(m)).test(text))
 }
 
 function matchBrand(text: string): string | undefined {
-  return BRANDS.find((b) => wordRe(escapeReg(b)).test(text))
+  return (
+    FRAGRANCE_BRANDS.find((b) => wordRe(escapeReg(b)).test(text)) ??
+    BRANDS.find((b) => wordRe(escapeReg(b)).test(text))
+  )
 }
 
 function matchSize(text: string): string | undefined {

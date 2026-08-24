@@ -4,12 +4,16 @@ import { uid } from '../lib/ids'
 const ALL: Garment['season'] = ['été', 'mi-saison', 'hiver']
 
 function g(
-  partial: Omit<Garment, 'id' | 'archived' | 'createdAt'> & { id?: string },
+  partial: Omit<Garment, 'id' | 'archived' | 'createdAt' | 'moments'> & {
+    id?: string
+    moments?: Garment['moments']
+  },
 ): Garment {
   return {
     id: partial.id ?? uid(),
     archived: false,
     createdAt: Date.now(),
+    moments: partial.moments ?? ['journée', 'soirée'],
     ...partial,
   }
 }
@@ -147,6 +151,29 @@ export function sampleWardrobe(): Garment[] {
       size: '85',
       season: ALL,
       formality: 2,
+      moments: ['journée', 'soirée'],
+    }),
+    g({
+      name: 'Un Jardin sur le Nil',
+      category: 'fragrance',
+      subcategory: 'eau de toilette',
+      color: 'ecru',
+      material: 'hespéridé',
+      brand: 'Hermès',
+      season: ['été'],
+      formality: 2,
+      moments: ['journée'],
+    }),
+    g({
+      name: 'Coco Mademoiselle',
+      category: 'fragrance',
+      subcategory: 'eau de parfum',
+      color: 'bordeaux',
+      material: 'floral',
+      brand: 'Chanel',
+      season: ['été', 'mi-saison'],
+      formality: 3,
+      moments: ['soirée'],
     }),
   ]
 }

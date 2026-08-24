@@ -3,6 +3,8 @@ import { RULES, SCORE, getColor } from '../config/dress'
 import type { Category, Formality, Garment, Season } from '../domain/types'
 import {
   evaluateOutfit,
+  fragranceMatches,
+  placeGarment,
   ruleB1,
   ruleB2,
   ruleB3,
@@ -35,6 +37,7 @@ function garment(
     createdAt: partial.createdAt ?? 0,
     material: partial.material,
     photoDataUrl: partial.photoDataUrl,
+    moments: partial.moments ?? (['journée', 'soirée'] as Garment['moments']),
     ...partial,
   }
 }
@@ -402,5 +405,50 @@ describe('wardrobeGaps', () => {
     })
     const gaps = wardrobeGaps([cielShirt, darkBottom])
     expect(gaps.some((g) => g.id === 'no-light-bottoms')).toBe(true)
+  })
+})
+
+describe('parfums', () => {
+  const dayPerfume = garment({
+    id: 'jardin',
+    category: 'fragrance',
+    color: 'blanc-optique',
+    subcategory: 'eau de toilette',
+    season: ['été'],
+    moments: ['journée'],
+  })
+  const nightPerfume = garment({
+    id: 'coco',
+    category: 'fragrance',
+    color: 'bordeaux',
+    subcategory: 'eau de parfum',
+    season: ['été'],
+    moments: ['soirée'],
+  })
+
+  it('n’entre pas dans le score vêtement (R3 ignoré)', () => {
+    const before = evaluateOutfit([cielShirt, taupeChino])
+    const after = evaluateOutfit([cielShirt, taupeChino, dayPerfume])
+    expect(after.score).toBe(before.score)
+    expect(after.hits.some((h) => h.id === 'R3')).toBe(false)
+  })
+
+  it('un seul parfum à la fois dans l’atelier', () => {
+    const next = placeGarment([cielShirt, dayPerfume], nightPerfume)
+    expect(next.filter((g) => g.category === 'fragrance').map((g) => g.id)).toEqual(['coco'])
+  })
+
+  it('filtre été-journée vs été-soirée', () => {
+    expect(fragranceMatches(dayPerfume, [cielShirt], ['journée'])).toBe(true)
+    expect(fragranceMatches(dayPerfume, [cielShirt], ['soirée'])).toBe(false)
+    expect(fragranceMatches(nightPerfume, [cielShirt], ['soirée'])).toBe(true)
+    const winterLayer = garment({
+      id: 'manteau',
+      category: 'layer',
+      color: 'marine',
+      subcategory: 'manteau',
+      season: ['hiver'],
+    })
+    expect(fragranceMatches(nightPerfume, [winterLayer], ['soirée'])).toBe(false)
   })
 })

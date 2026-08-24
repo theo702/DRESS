@@ -215,7 +215,7 @@ function pickReasons(hits: RuleHit[]): RuleHit[] {
  * Aucun I/O, aucun état React.
  */
 export function evaluateOutfit(garments: Garment[]): OutfitEvaluation {
-  const items = resolve(garments)
+  const items = resolve(garments.filter((g) => g.category !== 'fragrance'))
   const hits = [...PENALTY_RULES, ...BONUS_RULES].flatMap((fn) => fn(items))
 
   const raw = hits.reduce((sum, h) => sum + h.delta, SCORE.start)
@@ -248,4 +248,22 @@ export function placeGarment(current: Garment[], candidate: Garment): Garment[] 
     return [...current, candidate]
   }
   return [...current.filter((g) => g.category !== candidate.category), candidate]
+}
+
+export function fragranceMatches(
+  perfume: Garment,
+  clothes: Garment[],
+  usageLabels: string[] = [],
+): boolean {
+  const worn = clothes.filter((g) => g.category !== 'fragrance')
+  const moments = perfume.moments?.length ? perfume.moments : ['journée', 'soirée']
+  if (worn.length > 0) {
+    const overlap = perfume.season.some((s) => worn.some((c) => c.season.includes(s)))
+    if (!overlap) return false
+  }
+  const evening = usageLabels.some((l) => /soirée/i.test(l))
+  const daytime = usageLabels.some((l) => /journée|travail|soleil/i.test(l))
+  if (evening && !daytime) return moments.includes('soirée')
+  if (daytime && !evening) return moments.includes('journée')
+  return true
 }

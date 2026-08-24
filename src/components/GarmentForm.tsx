@@ -1,21 +1,26 @@
 import { useState, type FormEvent } from 'react'
 import {
+  ALL_MOMENTS,
   BRANDS,
   CATEGORY_LABELS,
   FORMALITY_LABELS,
+  FRAGRANCE_BRANDS,
   MATERIALS,
+  MOMENT_LABELS,
+  SCENT_FAMILIES,
   SIZES,
   SUBCATEGORIES,
   getColor,
 } from '../config/dress'
-import type { Category, Formality, Garment, Season } from '../domain/types'
+import type { Category, Formality, Garment, Moment, Season } from '../domain/types'
 import { importProductLink, type ImportedGarment } from '../lib/importProductLink'
 import { uid } from '../lib/ids'
 import { fileToDataUrl } from '../lib/photo'
 import { ColorPicker } from './ColorPicker'
 
-const CATEGORIES: Category[] = ['top', 'bottom', 'layer', 'shoes', 'accessory']
+const CATEGORIES: Category[] = ['top', 'bottom', 'layer', 'shoes', 'accessory', 'fragrance']
 const SEASONS: Season[] = ['été', 'mi-saison', 'hiver']
+const MOMENTS: Moment[] = ['journée', 'soirée']
 
 type Props = {
   initial?: Garment | null
@@ -34,6 +39,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
   const [season, setSeason] = useState<Season[]>(
     initial?.season ?? ['été', 'mi-saison', 'hiver'],
   )
+  const [moments, setMoments] = useState<Moment[]>(initial?.moments ?? [...ALL_MOMENTS])
   const [formality, setFormality] = useState<Formality>(initial?.formality ?? 2)
   const [photoDataUrl, setPhotoDataUrl] = useState(initial?.photoDataUrl)
   const [link, setLink] = useState('')
@@ -42,7 +48,10 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const colorDef = getColor(color)
+  const isFragrance = category === 'fragrance'
   const subs = SUBCATEGORIES[category] ?? []
+  const brandList = isFragrance ? [...FRAGRANCE_BRANDS, ...BRANDS] : BRANDS
+  const materialOptions = isFragrance ? SCENT_FAMILIES : MATERIALS
 
   function toggleSeason(s: Season) {
     setSeason((prev) => {
@@ -51,6 +60,16 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         return next.length === 0 ? prev : next
       }
       return [...prev, s]
+    })
+  }
+
+  function toggleMoment(m: Moment) {
+    setMoments((prev) => {
+      if (prev.includes(m)) {
+        const next = prev.filter((x) => x !== m)
+        return next.length === 0 ? prev : next
+      }
+      return [...prev, m]
     })
   }
 
@@ -67,6 +86,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
     if (draft.brand) setBrand(draft.brand)
     if (draft.size) setSize(draft.size)
     if (draft.season && draft.season.length > 0) setSeason(draft.season)
+    if (draft.moments && draft.moments.length > 0) setMoments(draft.moments)
     if (draft.formality) setFormality(draft.formality)
     if (draft.photoDataUrl) setPhotoDataUrl(draft.photoDataUrl)
   }
@@ -127,12 +147,13 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
       name: trimmed,
       category,
       subcategory: type,
-      color,
+      color: isFragrance ? (color || 'ecru') : color,
       material: material || undefined,
       brand: brand.trim() || undefined,
-      size: size.trim() || undefined,
+      size: isFragrance ? undefined : size.trim() || undefined,
       season,
-      formality,
+      moments: isFragrance ? moments : [...ALL_MOMENTS],
+      formality: isFragrance ? 2 : formality,
       photoDataUrl,
       archived: initial?.archived ?? false,
       createdAt: initial?.createdAt ?? Date.now(),
@@ -155,8 +176,8 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
       <div className="mb-4 rounded-ui border border-dashed border-line bg-fill/40 p-3">
         <p className="kicker mb-1">Depuis un lien</p>
         <p className="mb-2 text-xs text-muted">
-          Colle l’URL d’un article (Uniqlo, Zara, COS…) ou d’une photo. Nom, photo, type, marque et
-          couleur se préremplissent — tu corriges si besoin.
+          Colle l’URL d’un article (Uniqlo, Zara, COS, Chanel…) ou d’une photo. Nom, photo, type,
+          marque et couleur se préremplissent — tu corriges si besoin.
         </p>
         <div className="flex flex-wrap gap-2">
           <input
@@ -192,7 +213,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Chemise oxford bleu ciel"
+            placeholder={isFragrance ? 'Un Jardin sur le Nil' : 'Chemise oxford bleu ciel'}
             className="field focus-ring"
           />
         </label>
@@ -206,6 +227,11 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
                 const next = e.target.value as Category
                 setCategory(next)
                 setSubcategory(SUBCATEGORIES[next]?.[0] ?? '')
+                if (next === 'fragrance') {
+                  setSize('')
+                  setFormality(2)
+                  setColor('ecru')
+                }
               }}
               className="field focus-ring"
             >
@@ -222,7 +248,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
               value={subcategory}
               onChange={(e) => setSubcategory(e.target.value)}
               list={`dress-types-${category}`}
-              placeholder="tee, chino, baskets…"
+              placeholder={isFragrance ? 'eau de parfum, cologne…' : 'tee, chino, baskets…'}
               className="field focus-ring"
             />
             <datalist id={`dress-types-${category}`}>
@@ -234,21 +260,23 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="mt-3">
-        <p className="mb-1 text-xs text-muted">
-          Couleur
-          {colorDef && (
-            <span className="ml-2 text-ink">
-              {colorDef.label}
-              {!colorDef.allowed && ' — sélectionnable mais toujours signalée'}
-            </span>
+      {!isFragrance && (
+        <div className="mt-3">
+          <p className="mb-1 text-xs text-muted">
+            Couleur
+            {colorDef && (
+              <span className="ml-2 text-ink">
+                {colorDef.label}
+                {!colorDef.allowed && ' — sélectionnable mais toujours signalée'}
+              </span>
+            )}
+          </p>
+          <ColorPicker value={color} onChange={setColor} />
+          {colorDef && !colorDef.allowed && (
+            <p className="mt-1.5 text-xs text-danger">{colorDef.pickerHint}</p>
           )}
-        </p>
-        <ColorPicker value={color} onChange={setColor} />
-        {colorDef && !colorDef.allowed && (
-          <p className="mt-1.5 text-xs text-danger">{colorDef.pickerHint}</p>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className="block text-xs">
@@ -257,29 +285,31 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             value={brand}
             onChange={(e) => setBrand(e.target.value)}
             list="dress-brands"
-            placeholder="Uniqlo, COS…"
+            placeholder={isFragrance ? 'Chanel, Hermès…' : 'Uniqlo, COS…'}
             className="field focus-ring"
           />
         </label>
+        {!isFragrance && (
+          <label className="block text-xs">
+            <span className="mb-1 block text-muted">Taille</span>
+            <input
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              list="dress-sizes"
+              placeholder="M, 42…"
+              className="field focus-ring"
+            />
+          </label>
+        )}
         <label className="block text-xs">
-          <span className="mb-1 block text-muted">Taille</span>
-          <input
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            list="dress-sizes"
-            placeholder="M, 42…"
-            className="field focus-ring"
-          />
-        </label>
-        <label className="block text-xs">
-          <span className="mb-1 block text-muted">Matière</span>
+          <span className="mb-1 block text-muted">{isFragrance ? 'Famille' : 'Matière'}</span>
           <select
             value={material}
             onChange={(e) => setMaterial(e.target.value)}
             className="field focus-ring"
           >
             <option value="">—</option>
-            {MATERIALS.map((m) => (
+            {materialOptions.map((m) => (
               <option key={m} value={m}>
                 {m}
               </option>
@@ -310,20 +340,47 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         </fieldset>
 
         <fieldset className="text-xs">
-          <legend className="mb-1 text-muted">Formalité</legend>
-          <div className="flex gap-1">
-            {([1, 2, 3] as Formality[]).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFormality(f)}
-                aria-pressed={formality === f}
-                className={`chip focus-ring ${formality === f ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
-              >
-                {f} {FORMALITY_LABELS[f]}
-              </button>
-            ))}
-          </div>
+          <legend className="mb-1 text-muted">
+            {isFragrance ? 'Quand le porter' : 'Formalité'}
+          </legend>
+          {isFragrance ? (
+            <>
+              <div className="flex flex-wrap gap-1">
+                {MOMENTS.map((m) => {
+                  const on = moments.includes(m)
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => toggleMoment(m)}
+                      aria-pressed={on}
+                      className={`chip focus-ring ${on ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
+                    >
+                      {MOMENT_LABELS[m]}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted">
+                Un hespéridé l’été en journée, un oriental l’été en soirée : deux usages, deux
+                flacons.
+              </p>
+            </>
+          ) : (
+            <div className="flex gap-1">
+              {([1, 2, 3] as Formality[]).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFormality(f)}
+                  aria-pressed={formality === f}
+                  className={`chip focus-ring ${formality === f ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
+                >
+                  {f} {FORMALITY_LABELS[f]}
+                </button>
+              ))}
+            </div>
+          )}
         </fieldset>
       </div>
 
@@ -356,7 +413,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         </div>
       </div>
       <datalist id="dress-brands">
-        {BRANDS.map((b) => (
+        {brandList.map((b) => (
           <option key={b} value={b} />
         ))}
       </datalist>
@@ -369,10 +426,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
 
       <div className="mt-3 flex gap-2">
-        <button
-          type="submit"
-          className="btn btn-primary focus-ring"
-        >
+        <button type="submit" className="btn btn-primary focus-ring">
           Enregistrer
         </button>
       </div>

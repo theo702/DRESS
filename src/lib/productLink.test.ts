@@ -95,6 +95,16 @@ describe('guessFields', () => {
     expect(g.color).toBe('blanc-casse')
     expect(g.formality).toBe(1)
   })
+
+  it('maps a summer daytime perfume', () => {
+    const g = guessFields('Eau de toilette Hermès hespéridé citrus journée')
+    expect(g.category).toBe('fragrance')
+    expect(g.subcategory).toBe('eau de toilette')
+    expect(g.brand).toBe('Hermès')
+    expect(g.material).toBe('hespéridé')
+    expect(g.moments).toEqual(['journée'])
+    expect(g.season).toContain('été')
+  })
 })
 
 describe('draftFromJina', () => {

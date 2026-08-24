@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 
 export const ROUTES = [
   { id: 'atelier', label: 'Atelier', hash: '#/atelier' },
-  { id: 'garde-robe', label: 'Garde-robe', hash: '#/garde-robe' },
-  { id: 'tenues', label: 'Tenues', hash: '#/tenues' },
+  { id: 'garde-robe', label: 'Mes vêtements', hash: '#/garde-robe' },
+  { id: 'tenues', label: 'Mes tenues', hash: '#/tenues' },
   { id: 'aujourdhui', label: 'Aujourd’hui', hash: '#/aujourdhui' },
   { id: 'analyse', label: 'Analyse', hash: '#/analyse' },
 ] as const
@@ -11,7 +11,7 @@ export const ROUTES = [
 export type RouteId = (typeof ROUTES)[number]['id']
 
 function parseHash(): RouteId {
-  const raw = window.location.hash.replace(/^#\/?/, '')
+  const raw = window.location.hash.replace(/^#\/?/, '').split('?')[0]
   const match = ROUTES.find((r) => r.id === raw)
   return match?.id ?? 'atelier'
 }

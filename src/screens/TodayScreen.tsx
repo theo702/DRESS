@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../state/Store'
 
 export function TodayScreen() {
-  const { garments, outfits, wearLogs, saveOutfit, logWear } = useStore()
+  const { garments, outfits, wearLogs, tags, saveOutfit, logWear } = useStore()
   const [flash, setFlash] = useState<string | null>(null)
   const season = currentSeason()
   const now = useMemo(() => new Date(), [])
@@ -20,7 +20,15 @@ export function TodayScreen() {
   function wearThis(garmentIds: string[], score: number, warnings: string[]) {
     const key = canonicalGarmentKey(garmentIds)
     const existing = outfits.find((o) => canonicalGarmentKey(o.garmentIds) === key)
-    const outfit = existing ?? saveOutfit({ garmentIds, score, warnings })
+    const seasonTag = tags.find((t) => t.label === season)
+    const outfit =
+      existing ??
+      saveOutfit({
+        garmentIds,
+        score,
+        warnings,
+        tagIds: seasonTag ? [seasonTag.id] : [],
+      })
     logWear(outfit.id)
     setFlash('Noté. Cette tenue est loguée pour aujourd’hui.')
   }

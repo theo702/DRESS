@@ -19,10 +19,16 @@ export type Garment = {
   createdAt: number
 }
 
+export type Tag = {
+  id: string
+  label: string
+}
+
 export type Outfit = {
   id: string
   name?: string
   garmentIds: string[]
+  tagIds: string[]
   score: number
   warnings: string[]
   createdAt: number
@@ -50,9 +56,16 @@ export type OutfitEvaluation = {
 }
 
 export type AppData = {
-  version: 1
+  version: 1 | 2
   garments: Garment[]
   outfits: Outfit[]
   wearLogs: WearLog[]
+  tags: Tag[]
   exportedAt?: string
+}
+
+export type GarmentRemovalPlan = {
+  outfitId: string
+  replacementId: string | null
+  deleteOutfit: boolean
 }

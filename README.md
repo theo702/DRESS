@@ -19,22 +19,21 @@ réseau).
 
 ## Usage
 
-1. **Garde-robe** — ajoute tes pièces (type, couleur, marque, taille, saison,
-   photo). La couleur se choisit par pastilles. Les teintes interdites (noir,
-   blanc optique, camel…) sont barrées mais sélectionnables : le moteur les
-   signalera toujours.
-2. **Atelier** — clique un haut, un bas, une couche, des chaussures. Le score
-   se recalcule en direct. Filtre « compatible seulement » : masque ce qui
-   ferait tomber le score sous 70.
-3. **Tenues** — historique trié par score, bouton « Porté le », filtre
-   jamais portées / pas portées depuis 14 jours.
+1. **Mes vêtements** — type, couleur, marque, taille, saison, photo. Pastilles
+   de couleur (interdites barrées). Archivage ou suppression.
+2. **Atelier** — clique un haut, un bas, une couche, des chaussures. Score en
+   direct. Filtre « compatible seulement » (score ≥ 70). Tags d’usage.
+3. **Mes tenues** — tri par score, « Porté le », modifier / supprimer, tags.
+   Warning si une tenue n’a aucun tag.
 4. **Aujourd’hui** — 3 propositions (score ≥ 80, saison du mois, pas portées
    depuis 14 jours). Si moins de 3, le diagnostic dit ce qui manque.
 5. **Analyse** — répartition couleur / catégorie, pièces jamais portées,
    trous de garde-robe.
 
-Export / Import en haut à droite. Archivage des pièces : pas de suppression
-dure.
+Supprimer un vêtement (jeté, vendu) : si la pièce est dans des tenues, l’app
+demande par quoi la remplacer — les tenues ne restent pas cassées.
+
+Export / Import en haut à droite.
 
 ## Moteur
 

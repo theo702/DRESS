@@ -8,12 +8,13 @@ import {
 import type { Category, Formality, Garment, Season } from '../domain/types'
 import { GarmentCard } from '../components/GarmentCard'
 import { GarmentForm } from '../components/GarmentForm'
+import { ReplaceGarmentDialog } from '../components/ReplaceGarmentDialog'
 import { useStore } from '../state/Store'
 
 const CATEGORIES: Array<Category | 'all'> = ['all', 'top', 'bottom', 'layer', 'shoes', 'accessory']
 
 export function WardrobeScreen() {
-  const { garments, upsertGarment, setArchived, loadSample } = useStore()
+  const { garments, outfits, upsertGarment, setArchived, removeGarment, loadSample } = useStore()
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Garment | null>(null)
   const [category, setCategory] = useState<Category | 'all'>('all')
@@ -24,6 +25,7 @@ export function WardrobeScreen() {
   const [size, setSize] = useState('all')
   const [brand, setBrand] = useState('all')
   const [showArchived, setShowArchived] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<Garment | null>(null)
 
   const filtered = useMemo(() => {
     return garments.filter((g) => {
@@ -45,7 +47,7 @@ export function WardrobeScreen() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Garde-robe</h1>
+          <h1 className="text-lg font-semibold">Mes vêtements</h1>
           <p className="text-xs text-muted">
             {activeCount} pièce{activeCount === 1 ? '' : 's'} active{activeCount === 1 ? '' : 's'}
             {garments.some((g) => g.archived) ? ` · ${garments.filter((g) => g.archived).length} archivée(s)` : ''}
@@ -190,9 +192,31 @@ export function WardrobeScreen() {
               setShowForm(true)
             }}
             onArchive={() => setArchived(g.id, !g.archived)}
+            onDelete={() => {
+              const affected = outfits.filter((o) => o.garmentIds.includes(g.id))
+              if (affected.length === 0) {
+                if (window.confirm(`Supprimer définitivement « ${g.name} » ?`)) {
+                  removeGarment(g.id, [])
+                }
+                return
+              }
+              setPendingDelete(g)
+            }}
           />
         ))}
       </div>
+      {pendingDelete && (
+        <ReplaceGarmentDialog
+          garment={pendingDelete}
+          outfits={outfits.filter((o) => o.garmentIds.includes(pendingDelete.id))}
+          garments={garments}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={(plan) => {
+            removeGarment(pendingDelete.id, plan)
+            setPendingDelete(null)
+          }}
+        />
+      )}
     </div>
   )
 }

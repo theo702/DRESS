@@ -1,26 +1,48 @@
-import type { AppData } from '../domain/types'
-import { DATA_VERSION, STORAGE_KEY } from '../config/dress'
+import type { AppData, Garment, Outfit, Tag } from '../domain/types'
+import { DATA_VERSION, DEFAULT_TAGS, STORAGE_KEY } from '../config/dress'
 
 const empty = (): AppData => ({
   version: DATA_VERSION,
   garments: [],
   outfits: [],
   wearLogs: [],
+  tags: DEFAULT_TAGS.map((t) => ({ ...t })),
 })
+
+export function migrate(raw: unknown): AppData {
+  const parsed = raw as Partial<AppData> & { version?: number }
+  const garments = Array.isArray(parsed.garments) ? parsed.garments : []
+  const wearLogs = Array.isArray(parsed.wearLogs) ? parsed.wearLogs : []
+  const tags: Tag[] =
+    Array.isArray(parsed.tags) && parsed.tags.length > 0
+      ? parsed.tags
+      : DEFAULT_TAGS.map((t) => ({ ...t }))
+  const outfits: Outfit[] = Array.isArray(parsed.outfits)
+    ? parsed.outfits.map((o) => ({
+        ...o,
+        tagIds: Array.isArray(o.tagIds) ? o.tagIds : [],
+        garmentIds: Array.isArray(o.garmentIds) ? o.garmentIds : [],
+        warnings: Array.isArray(o.warnings) ? o.warnings : [],
+        score: typeof o.score === 'number' ? o.score : 0,
+        createdAt: typeof o.createdAt === 'number' ? o.createdAt : Date.now(),
+        id: o.id,
+      }))
+    : []
+  return {
+    version: DATA_VERSION,
+    garments,
+    outfits,
+    wearLogs,
+    tags,
+  }
+}
 
 export function loadState(): AppData {
   if (typeof localStorage === 'undefined') return empty()
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return empty()
-    const parsed = JSON.parse(raw) as AppData
-    if (!parsed || parsed.version !== DATA_VERSION) return empty()
-    return {
-      version: DATA_VERSION,
-      garments: Array.isArray(parsed.garments) ? parsed.garments : [],
-      outfits: Array.isArray(parsed.outfits) ? parsed.outfits : [],
-      wearLogs: Array.isArray(parsed.wearLogs) ? parsed.wearLogs : [],
-    }
+    return migrate(JSON.parse(raw))
   } catch {
     return empty()
   }
@@ -41,19 +63,15 @@ export function exportJson(data: AppData): string {
 }
 
 export function parseImport(raw: string): AppData {
-  const parsed = JSON.parse(raw) as AppData
+  const parsed = JSON.parse(raw) as unknown
   if (!parsed || typeof parsed !== 'object') {
     throw new Error('Fichier invalide')
   }
-  if (!Array.isArray(parsed.garments) || !Array.isArray(parsed.outfits) || !Array.isArray(parsed.wearLogs)) {
+  const obj = parsed as { garments?: unknown; outfits?: unknown; wearLogs?: unknown }
+  if (!Array.isArray(obj.garments) || !Array.isArray(obj.outfits) || !Array.isArray(obj.wearLogs)) {
     throw new Error('JSON incomplet : garments, outfits et wearLogs sont requis.')
   }
-  return {
-    version: DATA_VERSION,
-    garments: parsed.garments,
-    outfits: parsed.outfits,
-    wearLogs: parsed.wearLogs,
-  }
+  return migrate(parsed)
 }
 
 export function downloadText(filename: string, text: string): void {
@@ -66,3 +84,8 @@ export function downloadText(filename: string, text: string): void {
   URL.revokeObjectURL(url)
 }
 
+export function outfitPieces(outfit: Outfit, garments: Garment[]): Garment[] {
+  return outfit.garmentIds
+    .map((id) => garments.find((g) => g.id === id))
+    .filter((g): g is Garment => Boolean(g))
+}

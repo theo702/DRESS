@@ -9,6 +9,7 @@ type Props = {
   onSelect?: () => void
   onEdit?: () => void
   onArchive?: () => void
+  onDelete?: () => void
   compact?: boolean
 }
 
@@ -18,6 +19,7 @@ export function GarmentCard({
   onSelect,
   onEdit,
   onArchive,
+  onDelete,
   compact,
 }: Props) {
   const color = getColor(garment.color)
@@ -73,7 +75,7 @@ export function GarmentCard({
           </p>
         </div>
       </button>
-      {(onEdit || onArchive) && (
+      {(onEdit || onArchive || onDelete) && (
         <div className="flex border-t border-line text-[11px]">
           {onEdit && (
             <button
@@ -91,6 +93,15 @@ export function GarmentCard({
               className="px-2 py-1 text-muted hover:text-ink focus-ring"
             >
               {garment.archived ? 'Désarchiver' : 'Archiver'}
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="px-2 py-1 text-muted hover:text-ink focus-ring"
+            >
+              Supprimer
             </button>
           )}
         </div>

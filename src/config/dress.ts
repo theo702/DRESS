@@ -405,7 +405,17 @@ export const MONTH_TO_SEASON: Record<number, 'été' | 'mi-saison' | 'hiver'> = 
 }
 
 export const STORAGE_KEY = 'dress.v1'
-export const DATA_VERSION = 1 as const
+export const DATA_VERSION = 2 as const
+
+export const DEFAULT_TAGS: { id: string; label: string }[] = [
+  { id: 'ete', label: 'été' },
+  { id: 'hiver', label: 'hiver' },
+  { id: 'soleil', label: 'soleil' },
+  { id: 'pluie', label: 'pluie' },
+  { id: 'soiree', label: 'soirée' },
+  { id: 'travail', label: 'journée au travail' },
+  { id: 'sport', label: 'sport' },
+]
 
 export function isNeutralFamily(family: string): boolean {
   return family.startsWith(NEUTRAL_FAMILY_PREFIX)

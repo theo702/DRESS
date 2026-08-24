@@ -1,3 +1,14 @@
+export async function dataUrlFromBlob(blob: Blob, max = 480): Promise<string> {
+  const type = blob.type || 'image/jpeg'
+  const file = new File([blob], 'photo.jpg', { type })
+  return fileToDataUrl(file, max)
+}
+
+export async function dataUrlFromDataUrl(dataUrl: string, max = 480): Promise<string> {
+  const res = await fetch(dataUrl)
+  return dataUrlFromBlob(await res.blob(), max)
+}
+
 export async function fileToDataUrl(file: File, max = 480): Promise<string> {
   const source = await readImage(file)
   const scale = Math.min(1, max / Math.max(source.width, source.height))

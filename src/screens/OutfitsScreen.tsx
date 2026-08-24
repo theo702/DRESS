@@ -63,7 +63,7 @@ export function OutfitsScreen() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Mes tenues</h1>
+          <h1 className="page-title">Mes tenues</h1>
           <p className="text-xs text-muted">
             Ajoute, modifie ou supprime une tenue. Si une pièce disparaît, on te demandera par
             quoi la remplacer.
@@ -75,7 +75,7 @@ export function OutfitsScreen() {
         <button
           type="button"
           onClick={() => navigate('atelier')}
-          className="border border-ink bg-ink px-3 py-1.5 text-sm text-paper focus-ring"
+          className="btn btn-primary focus-ring"
         >
           Nouvelle tenue
         </button>
@@ -83,7 +83,7 @@ export function OutfitsScreen() {
 
       <TagManager tags={tags} onAdd={addTag} onRename={renameTag} onDelete={deleteTag} />
 
-      <div className="flex flex-wrap gap-1 text-xs">
+      <div className="card flex flex-wrap items-center gap-1.5 px-3 py-2.5 text-xs">
         {(
           [
             ['all', 'Toutes'],
@@ -97,7 +97,7 @@ export function OutfitsScreen() {
             type="button"
             onClick={() => setFilter(id)}
             aria-pressed={filter === id}
-            className={`border px-2 py-1 focus-ring ${filter === id ? 'border-ink bg-ink text-paper' : 'border-line'}`}
+            className={`chip focus-ring ${filter === id ? 'border-ink bg-ink text-paper' : 'border-line hover:bg-fill'}`}
           >
             {label}
           </button>
@@ -105,7 +105,7 @@ export function OutfitsScreen() {
         <select
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
-          className="border border-line bg-paper px-1.5 py-1 text-xs focus-ring"
+          className="field-pill focus-ring"
           aria-label="Filtrer par tag"
         >
           <option value="all">Tous les tags</option>
@@ -118,7 +118,7 @@ export function OutfitsScreen() {
       </div>
 
       {outfits.length === 0 && (
-        <p className="border border-line px-4 py-6 text-sm">
+        <p className="card px-4 py-6 text-sm">
           Aucune tenue. Assemble-en une dans l’Atelier.
         </p>
       )}
@@ -186,10 +186,10 @@ function OutfitRow({
   const noTags = (outfit.tagIds ?? []).length === 0
 
   return (
-    <li className={`border border-line ${noTags ? 'border-l-2 border-l-danger' : ''}`}>
-      <div className="flex flex-wrap items-start gap-3 px-3 py-3">
+    <li className={`card ${noTags ? 'border-l-2 border-l-danger' : ''}`}>
+      <div className="flex flex-wrap items-start gap-3 px-4 py-3.5">
         <p
-          className={`font-num text-3xl tabular-nums leading-none ${isBlocking ? 'text-danger' : 'text-ink'}`}
+          className={`font-num text-3xl tabular-nums leading-none tracking-tight ${isBlocking ? 'text-danger' : 'text-ink'}`}
         >
           {liveScore}
         </p>
@@ -211,12 +211,9 @@ function OutfitRow({
             {pieces.map((p) => {
               const color = getColor(p.color)
               return (
-                <span
-                  key={p.id}
-                  className="inline-flex items-center gap-1 border border-line px-1.5 py-0.5 text-[11px]"
-                >
+                <span key={p.id} className="chip">
                   <span
-                    className="inline-block h-2.5 w-2.5 border border-line"
+                    className="inline-block h-2.5 w-2.5 rounded-full border border-line"
                     style={{ backgroundColor: color?.hex }}
                   />
                   {p.name}
@@ -229,25 +226,17 @@ function OutfitRow({
             <TagPicker tags={tags} selected={outfit.tagIds ?? []} onChange={onTags} />
           </div>
         </div>
-        <div className="flex flex-col gap-1">
-          <button
-            type="button"
-            onClick={onWear}
-            className="border border-ink bg-ink px-2 py-1 text-xs text-paper focus-ring"
-          >
+        <div className="flex flex-col gap-1.5">
+          <button type="button" onClick={onWear} className="btn btn-primary text-xs focus-ring">
             Porté le
           </button>
-          <button type="button" onClick={onEdit} className="border border-line px-2 py-1 text-xs focus-ring">
+          <button type="button" onClick={onEdit} className="btn text-xs focus-ring">
             Modifier
           </button>
-          <button type="button" onClick={onDelete} className="border border-line px-2 py-1 text-xs focus-ring">
+          <button type="button" onClick={onDelete} className="btn text-xs focus-ring">
             Supprimer
           </button>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="border border-line px-2 py-1 text-xs focus-ring"
-          >
+          <button type="button" onClick={() => setOpen((v) => !v)} className="btn text-xs focus-ring">
             {open ? 'Masquer le détail' : 'Pourquoi ce score'}
           </button>
         </div>

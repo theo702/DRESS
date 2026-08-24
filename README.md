@@ -24,6 +24,8 @@ réseau).
 
 1. **Mes vêtements** — chaque pièce a un type, une couleur, une marque, une
    taille, une saison et une photo. Filtres + regroupement par ces champs.
+   En ajoutant une pièce, tu peux coller le lien d’un article : nom, photo,
+   type, marque et couleur se préremplissent.
 2. **Atelier** — clique un haut, un bas, une couche, des chaussures. Score en
    direct. Filtre « compatible seulement » (score ≥ 70). Tags d’usage.
 3. **Mes tenues** — tri par score, « Porté le », modifier / supprimer, tags.

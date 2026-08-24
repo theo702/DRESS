@@ -36,16 +36,16 @@ export function TodayScreen() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-lg font-semibold">Aujourd’hui</h1>
+        <h1 className="page-title">Aujourd’hui</h1>
         <p className="text-xs text-muted">
           Trois tenues, score ≥ {SCORE.todayMin}, saison « {season} », pas portées depuis {SCORE.staleDays} jours.
         </p>
       </header>
 
-      {flash && <p className="border border-line px-3 py-2 text-sm">{flash}</p>}
+      {flash && <p className="card px-4 py-2.5 text-sm">{flash}</p>}
 
       {suggestions.length === 0 && (
-        <div className="border border-line px-4 py-6 text-sm">
+        <div className="card px-4 py-6 text-sm">
           <p>Pas assez de candidates. Voici ce qui bloque :</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {gaps.length > 0 ? (
@@ -58,7 +58,7 @@ export function TodayScreen() {
       )}
 
       {suggestions.length > 0 && suggestions.length < 3 && (
-        <div className="border border-line px-3 py-2 text-sm">
+        <div className="card px-4 py-3 text-sm">
           <p>
             Seulement {suggestions.length} tenue{suggestions.length > 1 ? 's' : ''} au-dessus du seuil.
             Pour en générer plus :
@@ -71,25 +71,23 @@ export function TodayScreen() {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {suggestions.map((s) => (
-          <article key={s.key} className="border border-line">
+          <article key={s.key} className="space-y-2">
             <OutfitPreview garments={s.garments} evaluation={s.evaluation} />
-            <div className="border-t border-line p-3">
-              <button
-                type="button"
-                onClick={() =>
-                  wearThis(
-                    s.garments.map((g) => g.id),
-                    s.evaluation.score,
-                    s.evaluation.warnings,
-                  )
-                }
-                className="w-full border border-ink bg-ink px-3 py-2 text-sm text-paper focus-ring"
-              >
-                Je porte celle-ci
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() =>
+                wearThis(
+                  s.garments.map((g) => g.id),
+                  s.evaluation.score,
+                  s.evaluation.warnings,
+                )
+              }
+              className="btn btn-primary w-full focus-ring"
+            >
+              Je porte celle-ci
+            </button>
           </article>
         ))}
       </div>

@@ -28,8 +28,8 @@ export function GarmentCard({
   return (
     <article
       className={cx(
-        'flex flex-col border border-line bg-paper',
-        selected && 'ring-2 ring-ink ring-offset-1 ring-offset-paper',
+        'card flex flex-col',
+        selected && 'is-selected',
         garment.archived && 'opacity-50',
       )}
     >
@@ -45,26 +45,22 @@ export function GarmentCard({
         aria-label={`${garment.name}, ${CATEGORY_LABELS[garment.category]}, ${color?.label ?? garment.color}`}
       >
         <div
-          className={cx('relative w-full overflow-hidden', compact ? 'h-16' : 'h-28')}
+          className={cx('relative w-full overflow-hidden', compact ? 'h-20' : 'h-36')}
           style={{ backgroundColor: color?.hex ?? '#ddd' }}
         >
           {garment.photoDataUrl && (
-            <img
-              src={garment.photoDataUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
+            <img src={garment.photoDataUrl} alt="" className="h-full w-full object-cover" />
           )}
-          <span className="absolute bottom-1 left-1">
-            <ColorDot colorId={garment.color} size={12} />
+          <span className="absolute bottom-2 left-2">
+            <ColorDot colorId={garment.color} size={14} />
           </span>
           {!color?.allowed && (
-            <span className="absolute right-1 top-1 border border-line bg-paper px-1 text-[10px] uppercase tracking-wide text-ink">
+            <span className="absolute right-2 top-2 rounded-full border border-line bg-paper-2 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink">
               interdite
             </span>
           )}
         </div>
-        <div className="space-y-0.5 px-2 py-1.5">
+        <div className="space-y-0.5 px-2.5 py-2">
           <p className="truncate text-[13px] font-medium leading-tight">{garment.name}</p>
           <p className="truncate text-[11px] text-muted">
             {garment.subcategory}
@@ -80,12 +76,12 @@ export function GarmentCard({
         </div>
       </button>
       {(onEdit || onArchive || onDelete) && (
-        <div className="flex border-t border-line text-[11px]">
+        <div className="flex border-t border-line bg-fill/40 text-[11px]">
           {onEdit && (
             <button
               type="button"
               onClick={onEdit}
-              className="flex-1 px-2 py-1 text-left text-muted hover:text-ink focus-ring"
+              className="flex-1 px-2.5 py-1.5 text-left text-muted hover:bg-fill hover:text-ink focus-ring"
             >
               Modifier
             </button>
@@ -94,7 +90,7 @@ export function GarmentCard({
             <button
               type="button"
               onClick={onArchive}
-              className="px-2 py-1 text-muted hover:text-ink focus-ring"
+              className="px-2.5 py-1.5 text-muted hover:bg-fill hover:text-ink focus-ring"
             >
               {garment.archived ? 'Désarchiver' : 'Archiver'}
             </button>
@@ -103,7 +99,7 @@ export function GarmentCard({
             <button
               type="button"
               onClick={onDelete}
-              className="px-2 py-1 text-muted hover:text-ink focus-ring"
+              className="px-2.5 py-1.5 text-muted hover:bg-fill hover:text-ink focus-ring"
             >
               Supprimer
             </button>

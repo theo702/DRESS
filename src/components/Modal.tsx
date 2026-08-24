@@ -25,14 +25,14 @@ export function Modal({ title, children, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="w-full max-w-lg border border-line bg-paper p-4"
+        className="card w-full max-w-lg p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <h2 id="modal-title" className="text-sm font-semibold">
             {title}
           </h2>
-          <button type="button" onClick={onClose} className="text-xs text-muted focus-ring">
+          <button type="button" onClick={onClose} className="btn text-xs focus-ring">
             Fermer
           </button>
         </div>

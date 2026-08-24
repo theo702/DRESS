@@ -62,7 +62,7 @@ export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onC
         de tenues cassées.
       </p>
       {alternatives.length === 0 && (
-        <p className="mb-3 border border-line px-2 py-2 text-xs">
+        <p className="mb-3 rounded-ui bg-fill px-3 py-2 text-xs">
           Aucune autre pièce {CATEGORY_LABELS[garment.category]?.toLowerCase()} en stock. Tu peux
           retirer la pièce de la tenue ou supprimer la tenue.
         </p>
@@ -72,7 +72,7 @@ export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onC
           const row = rows[o.id]
           const title = o.name?.trim() || `Tenue du ${new Date(o.createdAt).toLocaleDateString('fr-FR')}`
           return (
-            <li key={o.id} className="border border-line p-2 text-sm">
+            <li key={o.id} className="card p-3 text-sm">
               <p className="mb-2 font-medium">{title}</p>
               <div className="space-y-1 text-xs">
                 <label className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onC
                         [o.id]: { mode: 'replace', replacementId: e.target.value },
                       }))
                     }
-                    className="flex-1 border border-line bg-paper px-1 py-0.5 focus-ring"
+                    className="field min-h-0 flex-1 py-1 text-xs focus-ring"
                   >
                     {alternatives.map((g) => (
                       <option key={g.id} value={g.id}>
@@ -144,14 +144,14 @@ export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onC
         })}
       </ul>
       <div className="mt-4 flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="border border-line px-3 py-1.5 text-sm focus-ring">
+        <button type="button" onClick={onCancel} className="btn focus-ring">
           Annuler
         </button>
         <button
           type="button"
           disabled={incomplete}
           onClick={submit}
-          className="border border-ink bg-ink px-3 py-1.5 text-sm text-paper focus-ring disabled:opacity-40"
+          className="btn btn-primary focus-ring disabled:opacity-40"
         >
           Confirmer la suppression
         </button>

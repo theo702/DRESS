@@ -94,7 +94,7 @@ export function WardrobeScreen() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Mes vêtements</h1>
+          <h1 className="page-title">Mes vêtements</h1>
           <p className="text-xs text-muted">
             Classées par type, couleur, marque, taille, saison et photo.
             {' '}
@@ -108,7 +108,7 @@ export function WardrobeScreen() {
             setEditing(null)
             setShowForm((v) => !v)
           }}
-          className="border border-ink bg-ink px-3 py-1.5 text-sm text-paper focus-ring"
+          className="btn btn-primary focus-ring"
         >
           {showForm && !editing ? 'Fermer' : 'Ajouter'}
         </button>
@@ -130,7 +130,7 @@ export function WardrobeScreen() {
         />
       )}
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="card flex flex-wrap items-center gap-2 px-3 py-2.5 text-xs">
         <FilterSelect
           label="Catégorie"
           value={category}
@@ -234,12 +234,12 @@ export function WardrobeScreen() {
       </div>
 
       {garments.length === 0 && (
-        <div className="border border-line px-4 py-8 text-sm">
+        <div className="card px-4 py-8 text-sm">
           <p>Aucune pièce. Ajoute tes vêtements — 5 suffisent pour commencer.</p>
           <button
             type="button"
             onClick={loadSample}
-            className="mt-3 border border-line px-3 py-1.5 text-xs focus-ring"
+            className="btn mt-3 focus-ring"
           >
             Charger 12 pièces d’exemple
           </button>
@@ -253,7 +253,7 @@ export function WardrobeScreen() {
       {sections.map((section) => (
         <section key={section.key}>
           {section.label && (
-            <h2 className="mb-2 mt-2 text-[11px] uppercase tracking-wide text-muted">
+            <h2 className="kicker mb-2 mt-2">
               {section.label}
               <span className="ml-1 font-num tabular-nums">({section.items.length})</span>
             </h2>
@@ -316,7 +316,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="border border-line bg-paper px-1.5 py-1 text-xs text-ink focus-ring"
+        className="field-pill focus-ring"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

@@ -22,8 +22,8 @@ export function TagPicker({ tags, selected, onChange }: PickerProps) {
               onChange(on ? selected.filter((id) => id !== t.id) : [...selected, t.id])
             }
             className={cx(
-              'border px-2 py-0.5 text-xs focus-ring',
-              on ? 'border-ink bg-ink text-paper' : 'border-line text-ink',
+              'chip focus-ring',
+              on ? 'border-ink bg-ink text-paper' : 'border-line bg-paper-2 text-ink hover:bg-fill',
             )}
           >
             {t.label}
@@ -48,8 +48,8 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
   const [editLabel, setEditLabel] = useState('')
 
   return (
-    <div className="border border-line p-3">
-      <h2 className="mb-2 text-[11px] uppercase tracking-wide text-muted">Tags</h2>
+    <div className="card p-4">
+      <h2 className="kicker mb-2">Tags</h2>
       <p className="mb-2 text-xs text-muted">
         Été, hiver, pluie, soirée, bureau… Ajoute, renomme ou supprime. Une tenue sans tag est
         signalée.
@@ -62,11 +62,11 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
                 <input
                   value={editLabel}
                   onChange={(e) => setEditLabel(e.target.value)}
-                  className="flex-1 border border-line bg-paper px-2 py-1 text-sm focus-ring"
+                  className="field min-w-0 flex-1 focus-ring"
                 />
                 <button
                   type="button"
-                  className="text-xs focus-ring"
+                  className="btn text-xs focus-ring"
                   onClick={() => {
                     if (editLabel.trim()) onRename(t.id, editLabel.trim())
                     setEditingId(null)
@@ -80,7 +80,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
                 <span className="flex-1">{t.label}</span>
                 <button
                   type="button"
-                  className="text-xs text-muted focus-ring"
+                  className="text-xs text-muted hover:text-ink focus-ring"
                   onClick={() => {
                     setEditingId(t.id)
                     setEditLabel(t.label)
@@ -90,7 +90,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
                 </button>
                 <button
                   type="button"
-                  className="text-xs text-muted focus-ring"
+                  className="text-xs text-muted hover:text-ink focus-ring"
                   onClick={() => {
                     if (window.confirm(`Supprimer le tag « ${t.label} » ?`)) onDelete(t.id)
                   }}
@@ -115,9 +115,9 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Nouveau tag"
-          className="flex-1 border border-line bg-paper px-2 py-1 text-sm focus-ring"
+          className="field min-w-0 flex-1 focus-ring"
         />
-        <button type="submit" className="border border-line px-2 py-1 text-xs focus-ring">
+        <button type="submit" className="btn focus-ring">
           Ajouter
         </button>
       </form>

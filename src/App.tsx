@@ -4,9 +4,16 @@ import { AtelierScreen } from './screens/AtelierScreen'
 import { OutfitsScreen } from './screens/OutfitsScreen'
 import { TodayScreen } from './screens/TodayScreen'
 import { WardrobeScreen } from './screens/WardrobeScreen'
+import { getColor } from './config/dress'
 import { ROUTES, useRoute } from './lib/routes'
 import { StoreProvider, useStore } from './state/Store'
 import { cx } from './lib/cx'
+
+const LOGO = [
+  getColor('bleu-ciel')?.hex ?? '#A8C4D9',
+  getColor('marine')?.hex ?? '#1F2D45',
+  getColor('taupe')?.hex ?? '#8B8178',
+] as const
 
 export default function App() {
   return (
@@ -37,13 +44,17 @@ function Shell() {
       <a href="#contenu" className="skip-link">
         Aller au contenu
       </a>
-      <header className="border-b border-line">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-stretch justify-between gap-2 px-3">
-          <div className="flex items-center py-2 pr-3">
-            <span className="text-sm font-semibold tracking-wide">DRESS</span>
-            <span className="ml-2 hidden text-[11px] text-muted sm:inline">garde-robe</span>
+      <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+          <div className="flex items-center gap-2.5 py-1 pr-2">
+            <span className="flex h-7 w-5 flex-col overflow-hidden rounded-sm border border-line" aria-hidden>
+              {LOGO.map((hex) => (
+                <span key={hex} className="flex-1" style={{ backgroundColor: hex }} />
+              ))}
+            </span>
+            <span className="text-[15px] font-semibold tracking-[0.18em]">DRESS</span>
           </div>
-          <nav className="flex min-w-0 flex-1 overflow-x-auto" aria-label="Principal">
+          <nav className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto py-1" aria-label="Principal">
             {ROUTES.map((r) => (
               <a
                 key={r.id}
@@ -54,28 +65,24 @@ function Shell() {
                 }}
                 aria-current={route === r.id ? 'page' : undefined}
                 className={cx(
-                  'shrink-0 border-b-2 px-3 py-3 text-sm focus-ring',
+                  'shrink-0 rounded-full px-3 py-1.5 text-sm focus-ring',
                   route === r.id
-                    ? 'border-ink font-medium'
-                    : 'border-transparent text-muted hover:text-ink',
+                    ? 'bg-ink text-paper'
+                    : 'text-muted hover:bg-fill hover:text-ink',
                 )}
               >
                 {r.label}
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-1 py-2">
-            <button
-              type="button"
-              onClick={exportData}
-              className="border border-line px-2 py-1 text-xs focus-ring"
-            >
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={exportData} className="btn focus-ring">
               Export
             </button>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="border border-line px-2 py-1 text-xs focus-ring"
+              className="btn focus-ring"
             >
               Import
             </button>
@@ -92,7 +99,7 @@ function Shell() {
           </div>
         </div>
       </header>
-      <main id="contenu" className="mx-auto max-w-6xl px-3 py-4">
+      <main id="contenu" className="mx-auto max-w-6xl px-4 py-7">
         {route === 'atelier' && <AtelierScreen />}
         {route === 'garde-robe' && <WardrobeScreen />}
         {route === 'tenues' && <OutfitsScreen />}

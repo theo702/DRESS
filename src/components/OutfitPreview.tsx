@@ -17,9 +17,9 @@ export function OutfitPreview({ garments, evaluation }: Props) {
   const accessories = garments.filter((g) => g.category === 'accessory')
 
   return (
-    <div className="border border-line">
-      <div className="border-b border-line px-3 py-2">
-        <p className="text-[11px] uppercase tracking-wide text-muted">Aperçu</p>
+    <div className="card">
+      <div className="border-b border-line px-3 py-2.5">
+        <p className="kicker">Aperçu</p>
       </div>
       {stacked.length === 0 && accessories.length === 0 ? (
         <p className="px-3 py-6 text-sm text-muted">Clique une pièce pour la placer.</p>
@@ -53,10 +53,10 @@ export function OutfitPreview({ garments, evaluation }: Props) {
                 return (
                   <span
                     key={g.id}
-                    className="inline-flex items-center gap-1 border border-line px-1.5 py-0.5 text-[11px]"
+                    className="chip"
                   >
                     <span
-                      className="inline-block h-2.5 w-2.5 border border-line"
+                      className="inline-block h-2.5 w-2.5 rounded-full border border-line"
                       style={{ backgroundColor: color?.hex }}
                     />
                     {g.name}
@@ -83,7 +83,7 @@ export function ScorePanel({ evaluation }: { evaluation: OutfitEvaluation }) {
       <div className="flex items-baseline justify-between gap-3">
         <p
           className={cx(
-            'font-num text-4xl tabular-nums leading-none',
+            'font-num text-[2.75rem] tabular-nums leading-none tracking-tight',
             evaluation.isBlocking ? 'text-danger' : 'text-ink',
           )}
         >

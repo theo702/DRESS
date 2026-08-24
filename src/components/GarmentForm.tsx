@@ -9,6 +9,7 @@ import {
   getColor,
 } from '../config/dress'
 import type { Category, Formality, Garment, Season } from '../domain/types'
+import { importProductLink, type ImportedGarment } from '../lib/importProductLink'
 import { uid } from '../lib/ids'
 import { fileToDataUrl } from '../lib/photo'
 import { ColorPicker } from './ColorPicker'
@@ -35,6 +36,9 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
   )
   const [formality, setFormality] = useState<Formality>(initial?.formality ?? 2)
   const [photoDataUrl, setPhotoDataUrl] = useState(initial?.photoDataUrl)
+  const [link, setLink] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importNote, setImportNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const colorDef = getColor(color)
@@ -48,6 +52,52 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
       }
       return [...prev, s]
     })
+  }
+
+  function applyDraft(draft: ImportedGarment) {
+    if (draft.name) setName(draft.name)
+    if (draft.category) {
+      setCategory(draft.category)
+      setSubcategory(draft.subcategory ?? SUBCATEGORIES[draft.category]?.[0] ?? '')
+    } else if (draft.subcategory) {
+      setSubcategory(draft.subcategory)
+    }
+    if (draft.color) setColor(draft.color)
+    if (draft.material) setMaterial(draft.material)
+    if (draft.brand) setBrand(draft.brand)
+    if (draft.size) setSize(draft.size)
+    if (draft.season && draft.season.length > 0) setSeason(draft.season)
+    if (draft.formality) setFormality(draft.formality)
+    if (draft.photoDataUrl) setPhotoDataUrl(draft.photoDataUrl)
+  }
+
+  async function onImportLink() {
+    setError(null)
+    setImportNote(null)
+    setImporting(true)
+    try {
+      const draft = await importProductLink(link)
+      applyDraft(draft)
+      const bits = [
+        draft.name && 'nom',
+        draft.photoDataUrl && 'photo',
+        draft.category && 'catégorie',
+        draft.subcategory && 'type',
+        draft.brand && 'marque',
+        draft.color && 'couleur',
+        draft.material && 'matière',
+        draft.size && 'taille',
+      ].filter(Boolean)
+      setImportNote(
+        bits.length === 0
+          ? 'Lien lu, mais rien de reconnaissable. Complète à la main.'
+          : `Prérempli : ${bits.join(', ')}. Vérifie et enregistre.`,
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Import du lien impossible.')
+    } finally {
+      setImporting(false)
+    }
   }
 
   async function onPhoto(file: File | undefined) {
@@ -90,7 +140,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className="border border-line bg-paper p-3">
+    <form onSubmit={submit} className="card p-4">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-sm font-semibold">
           {initial ? 'Modifier la pièce' : 'Nouvelle pièce'}
@@ -102,6 +152,40 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         )}
       </div>
 
+      <div className="mb-4 rounded-ui border border-dashed border-line bg-fill/40 p-3">
+        <p className="kicker mb-1">Depuis un lien</p>
+        <p className="mb-2 text-xs text-muted">
+          Colle l’URL d’un article (Uniqlo, Zara, COS…) ou d’une photo. Nom, photo, type, marque et
+          couleur se préremplissent — tu corriges si besoin.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="url"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                void onImportLink()
+              }
+            }}
+            placeholder="https://…"
+            inputMode="url"
+            autoComplete="url"
+            className="field min-w-0 flex-1 focus-ring"
+          />
+          <button
+            type="button"
+            onClick={() => void onImportLink()}
+            disabled={importing || !link.trim()}
+            className="btn focus-ring disabled:opacity-40"
+          >
+            {importing ? 'Lecture…' : 'Préremplir'}
+          </button>
+        </div>
+        {importNote && <p className="mt-2 text-xs text-muted">{importNote}</p>}
+      </div>
+
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block text-xs">
           <span className="mb-1 block text-muted">Nom</span>
@@ -109,7 +193,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Chemise oxford bleu ciel"
-            className="w-full border border-line bg-paper px-2 py-1.5 text-sm text-ink focus-ring"
+            className="field focus-ring"
           />
         </label>
 
@@ -123,7 +207,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
                 setCategory(next)
                 setSubcategory(SUBCATEGORIES[next]?.[0] ?? '')
               }}
-              className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
+              className="field focus-ring"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -139,7 +223,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
               onChange={(e) => setSubcategory(e.target.value)}
               list={`dress-types-${category}`}
               placeholder="tee, chino, baskets…"
-              className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
+              className="field focus-ring"
             />
             <datalist id={`dress-types-${category}`}>
               {subs.map((s) => (
@@ -174,7 +258,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             onChange={(e) => setBrand(e.target.value)}
             list="dress-brands"
             placeholder="Uniqlo, COS…"
-            className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
+            className="field focus-ring"
           />
         </label>
         <label className="block text-xs">
@@ -184,7 +268,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             onChange={(e) => setSize(e.target.value)}
             list="dress-sizes"
             placeholder="M, 42…"
-            className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
+            className="field focus-ring"
           />
         </label>
         <label className="block text-xs">
@@ -192,7 +276,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
           <select
             value={material}
             onChange={(e) => setMaterial(e.target.value)}
-            className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
+            className="field focus-ring"
           >
             <option value="">—</option>
             {MATERIALS.map((m) => (
@@ -216,7 +300,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
                   type="button"
                   onClick={() => toggleSeason(s)}
                   aria-pressed={on}
-                  className={`border px-2 py-1 focus-ring ${on ? 'border-ink bg-ink text-paper' : 'border-line text-ink'}`}
+                  className={`chip focus-ring ${on ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
                 >
                   {s}
                 </button>
@@ -234,7 +318,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
                 type="button"
                 onClick={() => setFormality(f)}
                 aria-pressed={formality === f}
-                className={`border px-2 py-1 focus-ring ${formality === f ? 'border-ink bg-ink text-paper' : 'border-line'}`}
+                className={`chip focus-ring ${formality === f ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
               >
                 {f} {FORMALITY_LABELS[f]}
               </button>
@@ -246,7 +330,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
       <div className="mt-3">
         <p className="mb-1 text-xs text-muted">Photo</p>
         <div className="flex items-center gap-3">
-          <label className="flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden border border-dashed border-line text-[11px] text-muted focus-within:outline focus-within:outline-2">
+          <label className="flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-ui border border-dashed border-line text-[11px] text-muted hover:bg-fill focus-within:outline focus-within:outline-2">
             {photoDataUrl ? (
               <img src={photoDataUrl} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -287,7 +371,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
       <div className="mt-3 flex gap-2">
         <button
           type="submit"
-          className="border border-ink bg-ink px-3 py-1.5 text-sm text-paper focus-ring"
+          className="btn btn-primary focus-ring"
         >
           Enregistrer
         </button>

@@ -25,8 +25,8 @@ export function ColorPicker({ value, onChange }: Props) {
             title={hint}
             onClick={() => onChange(color.id)}
             className={cx(
-              'relative h-8 w-full border border-line focus-ring',
-              selected && 'ring-2 ring-ink ring-offset-1 ring-offset-paper',
+              'relative h-8 w-full overflow-hidden rounded-md border border-line focus-ring',
+              selected && 'is-selected',
             )}
             style={{ backgroundColor: color.hex }}
           >
@@ -48,7 +48,7 @@ export function ColorDot({ colorId, size = 14 }: { colorId: string; size?: numbe
   const color = PALETTE.find((c) => c.id === colorId)
   return (
     <span
-      className="inline-block shrink-0 border border-line"
+      className="inline-block shrink-0 rounded-full border border-line"
       style={{
         width: size,
         height: size,

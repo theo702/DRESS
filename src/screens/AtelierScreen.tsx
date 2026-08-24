@@ -80,7 +80,7 @@ export function AtelierScreen() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Atelier</h1>
+          <h1 className="page-title">Atelier</h1>
           <p className="text-xs text-muted">
             {editing
               ? `Modification de « ${editing.name?.trim() || 'tenue'} ».`
@@ -99,14 +99,14 @@ export function AtelierScreen() {
       </header>
 
       {active.length === 0 && (
-        <p className="border border-line px-4 py-6 text-sm">
+        <p className="card px-4 py-6 text-sm">
           La garde-robe est vide. Ajoute des pièces avant d’assembler.
         </p>
       )}
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div>
-          <div className="mb-2 flex border border-line md:hidden" role="tablist" aria-label="Catégorie">
+          <div className="mb-3 flex gap-1 rounded-full bg-fill p-1 md:hidden" role="tablist" aria-label="Catégorie">
             {ATELIER_COLUMNS.map((col) => (
               <button
                 key={col}
@@ -115,8 +115,8 @@ export function AtelierScreen() {
                 aria-selected={mobileCol === col}
                 onClick={() => setMobileCol(col)}
                 className={cx(
-                  'flex-1 px-2 py-2 text-xs focus-ring',
-                  mobileCol === col ? 'bg-ink text-paper' : 'bg-paper text-ink',
+                  'flex-1 rounded-full px-2 py-1.5 text-xs focus-ring',
+                  mobileCol === col ? 'bg-ink text-paper' : 'text-ink hover:bg-paper-2',
                 )}
               >
                 {CATEGORY_LABELS[col]}
@@ -133,7 +133,7 @@ export function AtelierScreen() {
                   className={cx(mobileCol === col ? 'block' : 'hidden md:block')}
                   aria-label={CATEGORY_LABELS[col]}
                 >
-                  <h2 className="mb-2 hidden text-[11px] uppercase tracking-wide text-muted md:block">
+                  <h2 className="kicker mb-2 hidden md:block">
                     {CATEGORY_LABELS[col]}
                     <span className="ml-1 font-num tabular-nums">({items.length})</span>
                   </h2>
@@ -160,7 +160,7 @@ export function AtelierScreen() {
 
           {accessories.length > 0 && (
             <section className="mt-4">
-              <h2 className="mb-2 text-[11px] uppercase tracking-wide text-muted">Accessoires</h2>
+              <h2 className="kicker mb-2">Accessoires</h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
                 {accessories.map((g) => (
                   <GarmentCard
@@ -176,17 +176,17 @@ export function AtelierScreen() {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-3">
+        <aside className="lg:sticky lg:top-16">
           <OutfitPreview garments={selected} evaluation={evaluation} />
-          <div className="mt-2 space-y-2">
+          <div className="card mt-2 space-y-2 p-3">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nom de la tenue (optionnel)"
-              className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
+              className="field focus-ring"
             />
             <div>
-              <p className="mb-1 text-[11px] uppercase tracking-wide text-muted">Tags</p>
+              <p className="kicker mb-1">Tags</p>
               <TagPicker tags={tags} selected={tagIds} onChange={setTagIds} />
               {tagIds.length === 0 && (
                 <p className="mt-1 text-xs text-danger">Tenue sans tag — ajoute au moins un usage (été, bureau, pluie…).</p>
@@ -195,7 +195,7 @@ export function AtelierScreen() {
             <button
               type="button"
               onClick={onSave}
-              className="w-full border border-ink bg-ink px-3 py-2 text-sm text-paper focus-ring"
+              className="btn btn-primary w-full focus-ring"
             >
               {editing ? 'Mettre à jour la tenue' : 'Enregistrer la tenue'}
             </button>
@@ -209,7 +209,7 @@ export function AtelierScreen() {
                   setTagIds([])
                   clearEditOutfit()
                 }}
-                className="w-full border border-line px-3 py-1.5 text-xs text-muted focus-ring"
+                className="btn w-full text-xs text-muted focus-ring"
               >
                 {editing ? 'Annuler la modification' : 'Vider l’atelier'}
               </button>

@@ -205,7 +205,7 @@ function OutfitRow({
           <p className="text-[11px] text-muted">{lastWornLabel(last)}</p>
           {noTags && (
             <p className="mt-1 text-xs text-danger">
-              Warning : cette tenue n’a aucun tag. Ajoute un usage (été, pluie, bureau…).
+              Attention : cette tenue n’a aucun tag. Ajoute un usage (été, pluie, bureau…).
             </p>
           )}
           {missing > 0 && (

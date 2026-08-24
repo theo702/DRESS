@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 
 export const ROUTES = [
-  { id: 'atelier', label: 'Atelier', hash: '#/atelier' },
   { id: 'garde-robe', label: 'Mes vêtements', hash: '#/garde-robe' },
   { id: 'tenues', label: 'Mes tenues', hash: '#/tenues' },
+  { id: 'atelier', label: 'Atelier', hash: '#/atelier' },
   { id: 'aujourdhui', label: 'Aujourd’hui', hash: '#/aujourdhui' },
   { id: 'analyse', label: 'Analyse', hash: '#/analyse' },
 ] as const

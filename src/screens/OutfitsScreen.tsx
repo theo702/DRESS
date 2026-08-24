@@ -27,7 +27,7 @@ export function OutfitsScreen() {
   const [, navigate] = useRoute()
   const [filter, setFilter] = useState<WearFilter>('all')
   const [tagFilter, setTagFilter] = useState('all')
-  const [manageTags, setManageTags] = useState(false)
+  const untaggedCount = outfits.filter((o) => (o.tagIds ?? []).length === 0).length
 
   const lastWear = useMemo(() => {
     const map = new Map<string, string>()
@@ -65,30 +65,23 @@ export function OutfitsScreen() {
         <div>
           <h1 className="text-lg font-semibold">Mes tenues</h1>
           <p className="text-xs text-muted">
-            Ajoute, modifie, tague ou supprime. Une tenue sans tag est signalée.
+            Ajoute, modifie ou supprime une tenue. Si une pièce disparaît, on te demandera par
+            quoi la remplacer.
+            {untaggedCount > 0
+              ? ` ${untaggedCount} tenue${untaggedCount > 1 ? 's' : ''} sans tag.`
+              : ''}
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 text-xs">
-          <button
-            type="button"
-            onClick={() => navigate('atelier')}
-            className="border border-ink bg-ink px-2 py-1 text-paper focus-ring"
-          >
-            Nouvelle tenue
-          </button>
-          <button
-            type="button"
-            onClick={() => setManageTags((v) => !v)}
-            className="border border-line px-2 py-1 focus-ring"
-          >
-            {manageTags ? 'Fermer les tags' : 'Gérer les tags'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate('atelier')}
+          className="border border-ink bg-ink px-3 py-1.5 text-sm text-paper focus-ring"
+        >
+          Nouvelle tenue
+        </button>
       </header>
 
-      {manageTags && (
-        <TagManager tags={tags} onAdd={addTag} onRename={renameTag} onDelete={deleteTag} />
-      )}
+      <TagManager tags={tags} onAdd={addTag} onRename={renameTag} onDelete={deleteTag} />
 
       <div className="flex flex-wrap gap-1 text-xs">
         {(
@@ -193,7 +186,7 @@ function OutfitRow({
   const noTags = (outfit.tagIds ?? []).length === 0
 
   return (
-    <li className="border border-line">
+    <li className={`border border-line ${noTags ? 'border-l-2 border-l-danger' : ''}`}>
       <div className="flex flex-wrap items-start gap-3 px-3 py-3">
         <p
           className={`font-num text-3xl tabular-nums leading-none ${isBlocking ? 'text-danger' : 'text-ink'}`}
@@ -205,7 +198,7 @@ function OutfitRow({
           <p className="text-[11px] text-muted">{lastWornLabel(last)}</p>
           {noTags && (
             <p className="mt-1 text-xs text-danger">
-              Attention : cette tenue n’a aucun tag. Ajoute un usage (été, pluie, bureau…).
+              Sans tag — ajoute au moins un usage (été, hiver, soleil, pluie, soirée, travail, sport…).
             </p>
           )}
           {missing > 0 && (

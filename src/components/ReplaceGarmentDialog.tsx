@@ -56,9 +56,10 @@ export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onC
   return (
     <Modal title={`Remplacer « ${garment.name} » dans les tenues`} onClose={onCancel}>
       <p className="mb-3 text-sm leading-snug">
-        Cette pièce est dans {outfits.length} tenue{outfits.length > 1 ? 's' : ''}. Choisis un
-        remplaçant du même type ({CATEGORY_LABELS[garment.category]?.toLowerCase()}) pour ne pas
-        laisser de tenues cassées.
+        Tu retires « {garment.name} » (jetée, vendue, usée). Elle est encore dans{' '}
+        {outfits.length} tenue{outfits.length > 1 ? 's' : ''}. Indique par quoi la remplacer
+        — même type ({CATEGORY_LABELS[garment.category]?.toLowerCase()}) — pour ne pas laisser
+        de tenues cassées.
       </p>
       {alternatives.length === 0 && (
         <p className="mb-3 border border-line px-2 py-2 text-xs">

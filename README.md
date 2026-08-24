@@ -19,8 +19,8 @@ réseau).
 
 ## Usage
 
-1. **Mes vêtements** — type, couleur, marque, taille, saison, photo. Pastilles
-   de couleur (interdites barrées). Archivage ou suppression.
+1. **Mes vêtements** — chaque pièce a un type, une couleur, une marque, une
+   taille, une saison et une photo. Filtres + regroupement par ces champs.
 2. **Atelier** — clique un haut, un bas, une couche, des chaussures. Score en
    direct. Filtre « compatible seulement » (score ≥ 70). Tags d’usage.
 3. **Mes tenues** — tri par score, « Porté le », modifier / supprimer, tags.

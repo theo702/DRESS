@@ -70,9 +70,13 @@ export function GarmentCard({
             {garment.subcategory}
             {garment.brand ? ` · ${garment.brand}` : ''}
             {garment.size ? ` · ${garment.size}` : ''}
-            {garment.material ? ` · ${garment.material}` : ''}
-            {` · ${FORMALITY_LABELS[garment.formality]}`}
           </p>
+          {!compact && (
+            <p className="truncate text-[11px] text-muted">
+              {garment.season.join(', ')}
+              {` · ${FORMALITY_LABELS[garment.formality]}`}
+            </p>
+          )}
         </div>
       </button>
       {(onEdit || onArchive || onDelete) && (

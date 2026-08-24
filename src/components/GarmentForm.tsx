@@ -63,15 +63,20 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
   function submit(e: FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
+    const type = subcategory.trim()
     if (!trimmed) {
       setError('Donne un nom à la pièce.')
+      return
+    }
+    if (!type) {
+      setError('Indique un type (tee, chino, baskets…).')
       return
     }
     onSave({
       id: initial?.id ?? uid(),
       name: trimmed,
       category,
-      subcategory,
+      subcategory: type,
       color,
       material: material || undefined,
       brand: brand.trim() || undefined,
@@ -129,17 +134,18 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
           </label>
           <label className="block text-xs">
             <span className="mb-1 block text-muted">Type</span>
-            <select
+            <input
               value={subcategory}
               onChange={(e) => setSubcategory(e.target.value)}
+              list={`dress-types-${category}`}
+              placeholder="tee, chino, baskets…"
               className="w-full border border-line bg-paper px-2 py-1.5 text-sm focus-ring"
-            >
+            />
+            <datalist id={`dress-types-${category}`}>
               {subs.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s} />
               ))}
-            </select>
+            </datalist>
           </label>
         </div>
       </div>
@@ -237,28 +243,33 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         </fieldset>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 text-xs">
-        <label className="cursor-pointer border border-line px-2 py-1.5 focus-within:outline focus-within:outline-2">
-          Photo
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(e) => void onPhoto(e.target.files?.[0])}
-          />
-        </label>
-        {photoDataUrl && (
-          <>
-            <img src={photoDataUrl} alt="" className="h-10 w-10 border border-line object-cover" />
+      <div className="mt-3">
+        <p className="mb-1 text-xs text-muted">Photo</p>
+        <div className="flex items-center gap-3">
+          <label className="flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden border border-dashed border-line text-[11px] text-muted focus-within:outline focus-within:outline-2">
+            {photoDataUrl ? (
+              <img src={photoDataUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span>Ajouter</span>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => void onPhoto(e.target.files?.[0])}
+            />
+          </label>
+          {photoDataUrl && (
             <button
               type="button"
               onClick={() => setPhotoDataUrl(undefined)}
-              className="text-muted hover:text-ink focus-ring"
+              className="text-xs text-muted hover:text-ink focus-ring"
             >
               Retirer la photo
             </button>
-          </>
-        )}
+          )}
+          <p className="text-[11px] text-muted">Une photo locale, stockée dans le navigateur.</p>
+        </div>
       </div>
       <datalist id="dress-brands">
         {BRANDS.map((b) => (

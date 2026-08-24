@@ -4,6 +4,7 @@ import {
   FORMALITY_LABELS,
   PALETTE,
   SEASON_LABELS,
+  getColor,
 } from '../config/dress'
 import type { Category, Formality, Garment, Season } from '../domain/types'
 import { GarmentCard } from '../components/GarmentCard'
@@ -12,6 +13,47 @@ import { ReplaceGarmentDialog } from '../components/ReplaceGarmentDialog'
 import { useStore } from '../state/Store'
 
 const CATEGORIES: Array<Category | 'all'> = ['all', 'top', 'bottom', 'layer', 'shoes', 'accessory']
+
+type GroupBy = 'none' | 'type' | 'color' | 'brand' | 'season' | 'size'
+type PhotoFilter = 'all' | 'with' | 'without'
+
+const GROUP_LABELS: Record<GroupBy, string> = {
+  none: 'Aucun regroupement',
+  type: 'Type',
+  color: 'Couleur',
+  brand: 'Marque',
+  season: 'Saison',
+  size: 'Taille',
+}
+
+function groupLabel(by: GroupBy, key: string): string {
+  if (by === 'color') return getColor(key)?.label ?? key
+  if (by === 'season') return SEASON_LABELS[key] ?? key
+  return key
+}
+
+function grouped(items: Garment[], by: GroupBy): { key: string; label: string; items: Garment[] }[] {
+  if (by === 'none') return [{ key: 'all', label: '', items }]
+  const map = new Map<string, Garment[]>()
+  const push = (key: string, g: Garment) => {
+    const list = map.get(key) ?? []
+    list.push(g)
+    map.set(key, list)
+  }
+  for (const g of items) {
+    if (by === 'type') push(g.subcategory || 'Sans type', g)
+    else if (by === 'color') push(g.color, g)
+    else if (by === 'brand') push(g.brand || 'Sans marque', g)
+    else if (by === 'size') push(g.size || 'Sans taille', g)
+    else if (by === 'season') {
+      if (g.season.length === 0) push('Sans saison', g)
+      else for (const s of g.season) push(s, g)
+    }
+  }
+  return [...map.entries()]
+    .map(([key, groupItems]) => ({ key, label: groupLabel(by, key), items: groupItems }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
+}
 
 export function WardrobeScreen() {
   const { garments, outfits, upsertGarment, setArchived, removeGarment, loadSample } = useStore()
@@ -24,6 +66,8 @@ export function WardrobeScreen() {
   const [formality, setFormality] = useState<Formality | 'all'>('all')
   const [size, setSize] = useState('all')
   const [brand, setBrand] = useState('all')
+  const [photo, setPhoto] = useState<PhotoFilter>('all')
+  const [groupBy, setGroupBy] = useState<GroupBy>('type')
   const [showArchived, setShowArchived] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Garment | null>(null)
 
@@ -37,10 +81,13 @@ export function WardrobeScreen() {
       if (formality !== 'all' && g.formality !== formality) return false
       if (size !== 'all' && g.size !== size) return false
       if (brand !== 'all' && g.brand !== brand) return false
+      if (photo === 'with' && !g.photoDataUrl) return false
+      if (photo === 'without' && g.photoDataUrl) return false
       return true
     })
-  }, [garments, showArchived, category, type, color, season, formality, size, brand])
+  }, [garments, showArchived, category, type, color, season, formality, size, brand, photo])
 
+  const sections = useMemo(() => grouped(filtered, groupBy), [filtered, groupBy])
   const activeCount = garments.filter((g) => !g.archived).length
 
   return (
@@ -49,6 +96,8 @@ export function WardrobeScreen() {
         <div>
           <h1 className="text-lg font-semibold">Mes vêtements</h1>
           <p className="text-xs text-muted">
+            Classées par type, couleur, marque, taille, saison et photo.
+            {' '}
             {activeCount} pièce{activeCount === 1 ? '' : 's'} active{activeCount === 1 ? '' : 's'}
             {garments.some((g) => g.archived) ? ` · ${garments.filter((g) => g.archived).length} archivée(s)` : ''}
           </p>
@@ -154,6 +203,25 @@ export function WardrobeScreen() {
               .map((s) => ({ value: s, label: s })),
           ]}
         />
+        <FilterSelect
+          label="Photo"
+          value={photo}
+          onChange={(v) => setPhoto(v as PhotoFilter)}
+          options={[
+            { value: 'all', label: 'Toutes' },
+            { value: 'with', label: 'Avec photo' },
+            { value: 'without', label: 'Sans photo' },
+          ]}
+        />
+        <FilterSelect
+          label="Regrouper"
+          value={groupBy}
+          onChange={(v) => setGroupBy(v as GroupBy)}
+          options={(Object.keys(GROUP_LABELS) as GroupBy[]).map((k) => ({
+            value: k,
+            label: GROUP_LABELS[k],
+          }))}
+        />
         <label className="ml-auto flex items-center gap-1.5 text-muted">
           <input
             type="checkbox"
@@ -182,29 +250,39 @@ export function WardrobeScreen() {
         <p className="text-sm text-muted">Aucune pièce ne correspond aux filtres.</p>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {filtered.map((g) => (
-          <GarmentCard
-            key={g.id}
-            garment={g}
-            onEdit={() => {
-              setEditing(g)
-              setShowForm(true)
-            }}
-            onArchive={() => setArchived(g.id, !g.archived)}
-            onDelete={() => {
-              const affected = outfits.filter((o) => o.garmentIds.includes(g.id))
-              if (affected.length === 0) {
-                if (window.confirm(`Supprimer définitivement « ${g.name} » ?`)) {
-                  removeGarment(g.id, [])
-                }
-                return
-              }
-              setPendingDelete(g)
-            }}
-          />
-        ))}
-      </div>
+      {sections.map((section) => (
+        <section key={section.key}>
+          {section.label && (
+            <h2 className="mb-2 mt-2 text-[11px] uppercase tracking-wide text-muted">
+              {section.label}
+              <span className="ml-1 font-num tabular-nums">({section.items.length})</span>
+            </h2>
+          )}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {section.items.map((g) => (
+              <GarmentCard
+                key={`${section.key}-${g.id}`}
+                garment={g}
+                onEdit={() => {
+                  setEditing(g)
+                  setShowForm(true)
+                }}
+                onArchive={() => setArchived(g.id, !g.archived)}
+                onDelete={() => {
+                  const affected = outfits.filter((o) => o.garmentIds.includes(g.id))
+                  if (affected.length === 0) {
+                    if (window.confirm(`Supprimer définitivement « ${g.name} » ?`)) {
+                      removeGarment(g.id, [])
+                    }
+                    return
+                  }
+                  setPendingDelete(g)
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
       {pendingDelete && (
         <ReplaceGarmentDialog
           garment={pendingDelete}

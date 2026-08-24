@@ -10,13 +10,15 @@ import {
 import type { AppData, Garment, GarmentRemovalPlan, Outfit, Tag } from '../domain/types'
 import { uid } from '../lib/ids'
 import { todayIso } from '../lib/dates'
-import { evaluateOutfit } from '../engine/evaluateOutfit'
 import {
+  applyGarmentRemoval,
+  applyGarmentRemovals,
   downloadText,
   exportJson,
   loadState,
   parseImport,
   saveState,
+  type GarmentRemoval,
 } from '../storage/store'
 
 type OutfitInput = {
@@ -37,6 +39,7 @@ type StoreValue = {
   upsertGarment: (garment: Garment) => void
   setArchived: (id: string, archived: boolean) => void
   removeGarment: (id: string, plan: GarmentRemovalPlan[]) => void
+  removeGarments: (removals: GarmentRemoval[]) => void
   saveOutfit: (input: OutfitInput) => Outfit
   updateOutfit: (outfit: Outfit) => void
   deleteOutfit: (id: string) => void
@@ -52,19 +55,6 @@ type StoreValue = {
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
-
-function rescore(outfit: Outfit, garments: Garment[]): Outfit {
-  const pieces = outfit.garmentIds
-    .map((id) => garments.find((g) => g.id === id && !g.archived))
-    .filter((g): g is Garment => Boolean(g))
-  const ev = evaluateOutfit(pieces)
-  return {
-    ...outfit,
-    garmentIds: pieces.map((g) => g.id),
-    score: ev.score,
-    warnings: ev.warnings,
-  }
-}
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(() => loadState())
@@ -92,27 +82,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeGarment = useCallback((id: string, plan: GarmentRemovalPlan[]) => {
-    setData((prev) => {
-      let outfits = [...prev.outfits]
-      let wearLogs = [...prev.wearLogs]
-      for (const step of plan) {
-        if (step.deleteOutfit) {
-          outfits = outfits.filter((o) => o.id !== step.outfitId)
-          wearLogs = wearLogs.filter((l) => l.outfitId !== step.outfitId)
-          continue
-        }
-        outfits = outfits.map((o) => {
-          if (o.id !== step.outfitId) return o
-          const nextIds = o.garmentIds
-            .map((gid) => (gid === id ? step.replacementId : gid))
-            .filter((gid): gid is string => Boolean(gid))
-          return { ...o, garmentIds: nextIds }
-        })
-      }
-      const garments = prev.garments.filter((g) => g.id !== id)
-      outfits = outfits.map((o) => rescore(o, garments))
-      return { ...prev, garments, outfits, wearLogs }
-    })
+    setData((prev) => applyGarmentRemoval(prev, id, plan))
+  }, [])
+
+  const removeGarments = useCallback((removals: GarmentRemoval[]) => {
+    setData((prev) => applyGarmentRemovals(prev, removals))
   }, [])
 
   const saveOutfit = useCallback((input: OutfitInput) => {
@@ -224,6 +198,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       upsertGarment,
       setArchived,
       removeGarment,
+      removeGarments,
       saveOutfit,
       updateOutfit,
       deleteOutfit,
@@ -243,6 +218,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       upsertGarment,
       setArchived,
       removeGarment,
+      removeGarments,
       saveOutfit,
       updateOutfit,
       deleteOutfit,

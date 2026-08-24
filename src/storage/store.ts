@@ -1,5 +1,6 @@
-import type { AppData, Garment, Moment, Outfit, Tag } from '../domain/types'
+import type { AppData, Garment, GarmentRemovalPlan, Moment, Outfit, Tag } from '../domain/types'
 import { ALL_MOMENTS, DATA_VERSION, DEFAULT_TAGS, STORAGE_KEY } from '../config/dress'
+import { evaluateOutfit } from '../engine/evaluateOutfit'
 
 const empty = (): AppData => ({
   version: DATA_VERSION,
@@ -94,4 +95,67 @@ export function outfitPieces(outfit: Outfit, garments: Garment[]): Garment[] {
   return outfit.garmentIds
     .map((id) => garments.find((g) => g.id === id))
     .filter((g): g is Garment => Boolean(g))
+}
+
+export function rescoreOutfit(outfit: Outfit, garments: Garment[]): Outfit {
+  const pieces = outfit.garmentIds
+    .map((id) => garments.find((g) => g.id === id && !g.archived))
+    .filter((g): g is Garment => Boolean(g))
+  const ev = evaluateOutfit(pieces)
+  return {
+    ...outfit,
+    garmentIds: pieces.map((g) => g.id),
+    score: ev.score,
+    warnings: ev.warnings,
+  }
+}
+
+export type GarmentRemoval = {
+  id: string
+  plan: GarmentRemovalPlan[]
+}
+
+/** Retire une ou plusieurs pièces et applique le plan de remplacement des tenues. */
+export function applyGarmentRemovals(data: AppData, removals: GarmentRemoval[]): AppData {
+  if (removals.length === 0) return data
+  const ids = new Set(removals.map((r) => r.id))
+  let outfits = data.outfits.map((o) => ({ ...o, garmentIds: [...o.garmentIds] }))
+  let wearLogs = [...data.wearLogs]
+
+  for (const { id, plan } of removals) {
+    for (const step of plan) {
+      if (step.deleteOutfit) {
+        outfits = outfits.filter((o) => o.id !== step.outfitId)
+        wearLogs = wearLogs.filter((l) => l.outfitId !== step.outfitId)
+        continue
+      }
+      outfits = outfits.map((o) => {
+        if (o.id !== step.outfitId) return o
+        const nextIds = o.garmentIds
+          .map((gid) => (gid === id ? step.replacementId : gid))
+          .filter((gid): gid is string => typeof gid === 'string' && !ids.has(gid))
+        return { ...o, garmentIds: nextIds }
+      })
+    }
+  }
+
+  const garments = data.garments.filter((g) => !ids.has(g.id))
+  outfits = outfits.map((o) =>
+    rescoreOutfit(
+      {
+        ...o,
+        garmentIds: o.garmentIds.filter((gid) => !ids.has(gid)),
+      },
+      garments,
+    ),
+  )
+  return { ...data, garments, outfits, wearLogs }
+}
+
+export function applyGarmentRemoval(
+  data: AppData,
+  id: string,
+  plan: GarmentRemovalPlan[],
+): AppData {
+  return applyGarmentRemovals(data, [{ id, plan }])
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   CATEGORY_LABELS,
   FORMALITY_LABELS,
@@ -8,10 +8,12 @@ import {
   getColor,
 } from '../config/dress'
 import type { Category, Formality, Garment, Moment, Season } from '../domain/types'
+import { BulkDeleteDialog } from '../components/BulkDeleteDialog'
 import { GarmentCard } from '../components/GarmentCard'
 import { GarmentForm } from '../components/GarmentForm'
 import { ReplaceGarmentDialog } from '../components/ReplaceGarmentDialog'
 import { useStore } from '../state/Store'
+import type { GarmentRemoval } from '../storage/store'
 
 const CATEGORIES: Array<Category | 'all'> = [
   'all',
@@ -69,8 +71,15 @@ function grouped(items: Garment[], by: GroupBy): { key: string; label: string; i
     .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
 }
 
+type BulkReplace = {
+  excludeIds: string[]
+  unused: GarmentRemoval[]
+  queue: Garment[]
+  plans: GarmentRemoval[]
+}
+
 export function WardrobeScreen() {
-  const { garments, outfits, upsertGarment, setArchived, removeGarment } = useStore()
+  const { garments, outfits, upsertGarment, setArchived, removeGarment, removeGarments } = useStore()
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Garment | null>(null)
   const [category, setCategory] = useState<Category | 'all'>('all')
@@ -85,6 +94,10 @@ export function WardrobeScreen() {
   const [groupBy, setGroupBy] = useState<GroupBy>('type')
   const [showArchived, setShowArchived] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Garment | null>(null)
+  const [selecting, setSelecting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkConfirm, setBulkConfirm] = useState(false)
+  const [bulkReplace, setBulkReplace] = useState<BulkReplace | null>(null)
 
   const filtered = useMemo(() => {
     return garments.filter((g) => {
@@ -105,6 +118,95 @@ export function WardrobeScreen() {
 
   const sections = useMemo(() => grouped(filtered, groupBy), [filtered, groupBy])
   const activeCount = garments.filter((g) => !g.archived).length
+  const selected = useMemo(
+    () => garments.filter((g) => selectedIds.includes(g.id)),
+    [garments, selectedIds],
+  )
+  const visibleIds = useMemo(() => filtered.map((g) => g.id), [filtered])
+  const visibleSelectedCount = selectedIds.filter((id) => visibleIds.includes(id)).length
+  const hiddenSelectedCount = selectedIds.length - visibleSelectedCount
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id))
+
+  function exitSelecting() {
+    setSelecting(false)
+    setSelectedIds([])
+    setBulkConfirm(false)
+    setBulkReplace(null)
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  function toggleVisible() {
+    setSelectedIds((prev) => {
+      if (allVisibleSelected) return prev.filter((id) => !visibleIds.includes(id))
+      const extra = visibleIds.filter((id) => !prev.includes(id))
+      return [...prev, ...extra]
+    })
+  }
+
+  function startReplaceQueue(items: Garment[], unused: GarmentRemoval[], plans: GarmentRemoval[]) {
+    const deletedOutfits = new Set(
+      plans.flatMap((r) => r.plan.filter((s) => s.deleteOutfit).map((s) => s.outfitId)),
+    )
+    const queue = items.filter((g) =>
+      outfits.some((o) => o.garmentIds.includes(g.id) && !deletedOutfits.has(o.id)),
+    )
+    const skipped: GarmentRemoval[] = items
+      .filter((g) => !queue.some((q) => q.id === g.id))
+      .map((g) => ({ id: g.id, plan: [] }))
+    if (queue.length === 0) {
+      removeGarments([...unused, ...skipped, ...plans])
+      exitSelecting()
+      return
+    }
+    setBulkReplace({
+      excludeIds: [
+        ...unused.map((r) => r.id),
+        ...skipped.map((r) => r.id),
+        ...plans.map((r) => r.id),
+        ...queue.map((g) => g.id),
+      ],
+      unused: [...unused, ...skipped],
+      queue,
+      plans,
+    })
+  }
+
+  function confirmBulk() {
+    const unused = selected.filter((g) => !outfits.some((o) => o.garmentIds.includes(g.id)))
+    const used = selected.filter((g) => outfits.some((o) => o.garmentIds.includes(g.id)))
+    const unusedRemovals: GarmentRemoval[] = unused.map((g) => ({ id: g.id, plan: [] }))
+    setBulkConfirm(false)
+    if (used.length === 0) {
+      removeGarments(unusedRemovals)
+      exitSelecting()
+      return
+    }
+    startReplaceQueue(used, unusedRemovals, [])
+  }
+
+  useEffect(() => {
+    if (!selecting || bulkConfirm || bulkReplace || pendingDelete) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') exitSelecting()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selecting, bulkConfirm, bulkReplace, pendingDelete])
+
+  const replacing = bulkReplace?.queue[0] ?? null
+  const replacingOutfits = replacing
+    ? outfits.filter((o) => {
+        const deleted = new Set(
+          (bulkReplace?.plans ?? [])
+            .flatMap((r) => r.plan.filter((s) => s.deleteOutfit).map((s) => s.outfitId)),
+        )
+        return o.garmentIds.includes(replacing.id) && !deleted.has(o.id)
+      })
+    : []
 
   return (
     <div className="space-y-4">
@@ -119,19 +221,42 @@ export function WardrobeScreen() {
             {garments.some((g) => g.archived) ? ` · ${garments.filter((g) => g.archived).length} archivée(s)` : ''}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(null)
-            setShowForm((v) => !v)
-          }}
-          className="btn btn-primary focus-ring"
-        >
-          {showForm && !editing ? 'Fermer' : 'Ajouter'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {garments.length > 0 && (
+            <button
+              type="button"
+              aria-pressed={selecting}
+              onClick={() => {
+                if (selecting) {
+                  exitSelecting()
+                  return
+                }
+                setShowForm(false)
+                setEditing(null)
+                setPendingDelete(null)
+                setSelecting(true)
+              }}
+              className="btn focus-ring"
+            >
+              {selecting ? 'Annuler le tri' : 'Gros tri'}
+            </button>
+          )}
+          {!selecting && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(null)
+                setShowForm((v) => !v)
+              }}
+              className="btn btn-primary focus-ring"
+            >
+              {showForm && !editing ? 'Fermer' : 'Ajouter'}
+            </button>
+          )}
+        </div>
       </header>
 
-      {(showForm || editing) && (
+      {(showForm || editing) && !selecting && (
         <GarmentForm
           key={editing?.id ?? 'new'}
           initial={editing}
@@ -259,6 +384,39 @@ export function WardrobeScreen() {
         </label>
       </div>
 
+      {selecting && (
+        <div
+          className="card sticky top-[3.35rem] z-20 flex flex-wrap items-center gap-2 px-3 py-2 text-xs"
+          role="toolbar"
+          aria-label="Gros tri"
+        >
+          <button
+            type="button"
+            onClick={toggleVisible}
+            disabled={visibleIds.length === 0}
+            className="btn focus-ring"
+          >
+            {allVisibleSelected ? 'Retirer le visible' : 'Tout visible'}
+          </button>
+          <p className="text-muted" aria-live="polite">
+            <span className="font-num tabular-nums text-ink">{selectedIds.length}</span>{' '}
+            sélectionnée{selectedIds.length === 1 ? '' : 's'}
+            {visibleIds.length > 0 ? ` · ${visibleSelectedCount}/${visibleIds.length} visibles` : ''}
+            {hiddenSelectedCount > 0 ? ` · ${hiddenSelectedCount} hors filtres` : ''}
+          </p>
+          <button
+            type="button"
+            onClick={() => setBulkConfirm(true)}
+            disabled={selectedIds.length === 0}
+            className="btn btn-primary ml-auto focus-ring"
+          >
+            {selectedIds.length === 0
+              ? 'Supprimer'
+              : `Supprimer ${selectedIds.length} ${selectedIds.length === 1 ? 'pièce' : 'pièces'}`}
+          </button>
+        </div>
+      )}
+
       {garments.length === 0 && (
         <div className="card px-4 py-8 text-sm">
           <p>Aucune pièce. Ajoute tes vêtements — 5 suffisent pour commencer.</p>
@@ -282,21 +440,32 @@ export function WardrobeScreen() {
               <GarmentCard
                 key={`${section.key}-${g.id}`}
                 garment={g}
-                onEdit={() => {
-                  setEditing(g)
-                  setShowForm(true)
-                }}
-                onArchive={() => setArchived(g.id, !g.archived)}
-                onDelete={() => {
-                  const affected = outfits.filter((o) => o.garmentIds.includes(g.id))
-                  if (affected.length === 0) {
-                    if (window.confirm(`Supprimer définitivement « ${g.name} » ?`)) {
-                      removeGarment(g.id, [])
-                    }
-                    return
-                  }
-                  setPendingDelete(g)
-                }}
+                selecting={selecting}
+                selected={selecting && selectedIds.includes(g.id)}
+                onSelect={selecting ? () => toggleSelected(g.id) : undefined}
+                onEdit={
+                  selecting
+                    ? undefined
+                    : () => {
+                        setEditing(g)
+                        setShowForm(true)
+                      }
+                }
+                onArchive={selecting ? undefined : () => setArchived(g.id, !g.archived)}
+                onDelete={
+                  selecting
+                    ? undefined
+                    : () => {
+                        const affected = outfits.filter((o) => o.garmentIds.includes(g.id))
+                        if (affected.length === 0) {
+                          if (window.confirm(`Supprimer définitivement « ${g.name} » ?`)) {
+                            removeGarment(g.id, [])
+                          }
+                          return
+                        }
+                        setPendingDelete(g)
+                      }
+                }
               />
             ))}
           </div>
@@ -311,6 +480,32 @@ export function WardrobeScreen() {
           onConfirm={(plan) => {
             removeGarment(pendingDelete.id, plan)
             setPendingDelete(null)
+          }}
+        />
+      )}
+      {bulkConfirm && selected.length > 0 && (
+        <BulkDeleteDialog
+          garments={selected}
+          outfits={outfits}
+          onCancel={() => setBulkConfirm(false)}
+          onConfirm={confirmBulk}
+        />
+      )}
+      {replacing && bulkReplace && replacingOutfits.length > 0 && (
+        <ReplaceGarmentDialog
+          key={replacing.id}
+          garment={replacing}
+          outfits={replacingOutfits}
+          garments={garments}
+          excludeIds={bulkReplace.excludeIds}
+          stepLabel={`Pièce ${bulkReplace.plans.length + 1} / ${bulkReplace.plans.length + bulkReplace.queue.length} encore dans une tenue`}
+          onCancel={() => setBulkReplace(null)}
+          onConfirm={(plan) => {
+            startReplaceQueue(
+              bulkReplace.queue.slice(1),
+              bulkReplace.unused,
+              [...bulkReplace.plans, { id: replacing.id, plan }],
+            )
           }}
         />
       )}

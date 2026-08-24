@@ -7,6 +7,8 @@ type Props = {
   garment: Garment
   outfits: Outfit[]
   garments: Garment[]
+  excludeIds?: string[]
+  stepLabel?: string
   onCancel: () => void
   onConfirm: (plan: GarmentRemovalPlan[]) => void
 }
@@ -16,13 +18,26 @@ type RowState = {
   replacementId: string
 }
 
-export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onConfirm }: Props) {
+export function ReplaceGarmentDialog({
+  garment,
+  outfits,
+  garments,
+  excludeIds = [],
+  stepLabel,
+  onCancel,
+  onConfirm,
+}: Props) {
+  const excluded = useMemo(() => new Set(excludeIds), [excludeIds])
   const alternatives = useMemo(
     () =>
       garments.filter(
-        (g) => g.id !== garment.id && !g.archived && g.category === garment.category,
+        (g) =>
+          g.id !== garment.id &&
+          !excluded.has(g.id) &&
+          !g.archived &&
+          g.category === garment.category,
       ),
-    [garments, garment],
+    [garments, garment, excluded],
   )
 
   const [rows, setRows] = useState<Record<string, RowState>>(() => {
@@ -55,6 +70,7 @@ export function ReplaceGarmentDialog({ garment, outfits, garments, onCancel, onC
 
   return (
     <Modal title={`Remplacer « ${garment.name} » dans les tenues`} onClose={onCancel}>
+      {stepLabel && <p className="mb-2 text-xs text-muted">{stepLabel}</p>}
       <p className="mb-3 text-sm leading-snug">
         Tu retires « {garment.name} » (jetée, vendue, usée). Elle est encore dans{' '}
         {outfits.length} tenue{outfits.length > 1 ? 's' : ''}. Indique par quoi la remplacer

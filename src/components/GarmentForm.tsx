@@ -193,7 +193,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             placeholder="https://…"
             inputMode="url"
             autoComplete="url"
-            className="field min-w-0 w-full flex-1 focus-ring"
+            className="field min-h-11 min-w-0 w-full flex-1 focus-ring"
           />
           <button
             type="button"
@@ -218,7 +218,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block text-xs">
             <span className="mb-1 block text-muted">Catégorie</span>
             <select

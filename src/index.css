@@ -81,29 +81,6 @@ body {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-
-  .btn {
-    min-height: 2.75rem;
-    padding-left: 0.95rem;
-    padding-right: 0.95rem;
-  }
-
-  .field,
-  .field-pill {
-    min-height: 2.75rem;
-    font-size: 1rem;
-  }
-
-  select.field-pill {
-    padding-top: 0.4rem;
-    padding-bottom: 0.4rem;
-  }
-
-  button.chip {
-    min-height: 2.75rem;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
 }
 
 .font-num,
@@ -299,5 +276,43 @@ button.chip {
   a,
   button {
     transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+}
+
+@media (max-width: 1023px) {
+  .btn {
+    min-height: 2.75rem;
+    padding-left: 0.95rem;
+    padding-right: 0.95rem;
+  }
+
+  .field,
+  .field-pill {
+    min-height: 2.75rem;
+    font-size: 1rem;
+  }
+
+  select.field-pill {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+
+  button.chip {
+    min-height: 2.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .card.bulk-toolbar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: var(--app-tabbar);
+    z-index: 20;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
   }
 }

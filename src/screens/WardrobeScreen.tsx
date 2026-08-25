@@ -386,7 +386,7 @@ export function WardrobeScreen() {
 
       {selecting && (
         <div
-          className="card z-20 flex flex-wrap items-center gap-2 px-3 py-2 text-xs max-md:fixed max-md:inset-x-0 max-md:bottom-[var(--app-tabbar)] max-md:rounded-none max-md:border-x-0 max-md:border-b-0 md:sticky md:top-[calc(var(--app-header)+env(safe-area-inset-top,0px))]"
+          className="card bulk-toolbar z-20 flex flex-wrap items-center gap-2 px-3 py-2 text-xs md:sticky md:top-[calc(var(--app-header)+env(safe-area-inset-top,0px))]"
           role="toolbar"
           aria-label="Gros tri"
         >
@@ -394,7 +394,7 @@ export function WardrobeScreen() {
             type="button"
             onClick={toggleVisible}
             disabled={visibleIds.length === 0}
-            className="btn focus-ring"
+            className="btn min-h-11 focus-ring"
           >
             {allVisibleSelected ? 'Retirer le visible' : 'Tout visible'}
           </button>
@@ -408,7 +408,7 @@ export function WardrobeScreen() {
             type="button"
             onClick={() => setBulkConfirm(true)}
             disabled={selectedIds.length === 0}
-            className="btn btn-primary max-md:w-full md:ml-auto focus-ring"
+            className="btn btn-primary min-h-11 max-md:w-full md:ml-auto focus-ring"
           >
             {selectedIds.length === 0
               ? 'Supprimer'

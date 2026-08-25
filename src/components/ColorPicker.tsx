@@ -25,7 +25,7 @@ export function ColorPicker({ value, onChange }: Props) {
             title={hint}
             onClick={() => onChange(color.id)}
             className={cx(
-              'relative h-8 w-full overflow-hidden rounded-md border border-line focus-ring',
+              'relative min-h-11 w-full overflow-hidden rounded-md border border-line focus-ring',
               selected && 'is-selected',
             )}
             style={{ backgroundColor: color.hex }}

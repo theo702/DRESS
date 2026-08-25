@@ -22,7 +22,7 @@ export function TagPicker({ tags, selected, onChange }: PickerProps) {
               onChange(on ? selected.filter((id) => id !== t.id) : [...selected, t.id])
             }
             className={cx(
-              'chip focus-ring',
+              'chip min-h-11 focus-ring',
               on ? 'border-ink bg-ink text-paper' : 'border-line bg-paper-2 text-ink hover:bg-fill',
             )}
           >
@@ -56,7 +56,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
       </p>
       <ul className="space-y-1">
         {tags.map((t) => (
-          <li key={t.id} className="flex items-center gap-2 text-sm">
+          <li key={t.id} className="flex flex-wrap items-center gap-2 text-sm">
             {editingId === t.id ? (
               <>
                 <input
@@ -80,7 +80,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
                 <span className="flex-1">{t.label}</span>
                 <button
                   type="button"
-                  className="text-xs text-muted hover:text-ink focus-ring"
+                  className="btn text-xs focus-ring"
                   onClick={() => {
                     setEditingId(t.id)
                     setEditLabel(t.label)
@@ -90,7 +90,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
                 </button>
                 <button
                   type="button"
-                  className="text-xs text-muted hover:text-ink focus-ring"
+                  className="btn text-xs focus-ring"
                   onClick={() => {
                     if (window.confirm(`Supprimer le tag « ${t.label} » ?`)) onDelete(t.id)
                   }}
@@ -103,7 +103,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
         ))}
       </ul>
       <form
-        className="mt-2 flex gap-2"
+        className="mt-2 flex flex-col gap-2 sm:flex-row"
         onSubmit={(e) => {
           e.preventDefault()
           if (!draft.trim()) return
@@ -117,7 +117,7 @@ export function TagManager({ tags, onAdd, onRename, onDelete }: ManagerProps) {
           placeholder="Nouveau tag"
           className="field min-w-0 flex-1 focus-ring"
         />
-        <button type="submit" className="btn focus-ring">
+        <button type="submit" className="btn w-full focus-ring sm:w-auto">
           Ajouter
         </button>
       </form>

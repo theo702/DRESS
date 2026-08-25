@@ -91,23 +91,26 @@ export function ReplaceGarmentDialog({
             <li key={o.id} className="card p-3 text-sm">
               <p className="mb-2 font-medium">{title}</p>
               <div className="space-y-1 text-xs">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name={`mode-${o.id}`}
-                    checked={row?.mode === 'replace'}
-                    disabled={alternatives.length === 0}
-                    onChange={() =>
-                      setRows((prev) => ({
-                        ...prev,
-                        [o.id]: {
-                          mode: 'replace',
-                          replacementId: prev[o.id]?.replacementId || alternatives[0]?.id || '',
-                        },
-                      }))
-                    }
-                  />
-                  Remplacer par
+                <label className="flex min-h-11 flex-col gap-2 sm:flex-row sm:items-center">
+                  <span className="flex min-h-11 items-center gap-2">
+                    <input
+                      type="radio"
+                      name={`mode-${o.id}`}
+                      checked={row?.mode === 'replace'}
+                      disabled={alternatives.length === 0}
+                      onChange={() =>
+                        setRows((prev) => ({
+                          ...prev,
+                          [o.id]: {
+                            mode: 'replace',
+                            replacementId: prev[o.id]?.replacementId || alternatives[0]?.id || '',
+                          },
+                        }))
+                      }
+                      className="h-5 w-5 accent-ink"
+                    />
+                    Remplacer par
+                  </span>
                   <select
                     disabled={row?.mode !== 'replace'}
                     value={row?.replacementId ?? ''}
@@ -117,7 +120,7 @@ export function ReplaceGarmentDialog({
                         [o.id]: { mode: 'replace', replacementId: e.target.value },
                       }))
                     }
-                    className="field min-h-0 flex-1 py-1 text-xs focus-ring"
+                    className="field min-w-0 w-full flex-1 py-1 text-xs focus-ring"
                   >
                     {alternatives.map((g) => (
                       <option key={g.id} value={g.id}>
@@ -126,7 +129,7 @@ export function ReplaceGarmentDialog({
                     ))}
                   </select>
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex min-h-11 items-center gap-2">
                   <input
                     type="radio"
                     name={`mode-${o.id}`}
@@ -137,10 +140,11 @@ export function ReplaceGarmentDialog({
                         [o.id]: { mode: 'remove', replacementId: '' },
                       }))
                     }
+                    className="h-5 w-5 accent-ink"
                   />
                   Retirer la pièce de cette tenue
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex min-h-11 items-center gap-2">
                   <input
                     type="radio"
                     name={`mode-${o.id}`}
@@ -151,6 +155,7 @@ export function ReplaceGarmentDialog({
                         [o.id]: { mode: 'delete', replacementId: '' },
                       }))
                     }
+                    className="h-5 w-5 accent-ink"
                   />
                   Supprimer toute la tenue
                 </label>
@@ -159,7 +164,7 @@ export function ReplaceGarmentDialog({
           )
         })}
       </ul>
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button type="button" onClick={onCancel} className="btn focus-ring">
           Annuler
         </button>

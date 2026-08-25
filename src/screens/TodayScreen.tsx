@@ -84,7 +84,7 @@ export function TodayScreen() {
                   s.evaluation.warnings,
                 )
               }
-              className="btn btn-primary w-full focus-ring"
+              className="btn btn-primary min-h-11 w-full focus-ring"
             >
               Je porte celle-ci
             </button>

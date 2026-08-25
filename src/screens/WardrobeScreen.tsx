@@ -209,7 +209,7 @@ export function WardrobeScreen() {
     : []
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${selecting ? 'max-md:pb-[var(--app-bulkbar)]' : ''}`}>
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="page-title">Mes vêtements</h1>
@@ -272,7 +272,7 @@ export function WardrobeScreen() {
         />
       )}
 
-      <div className="card flex flex-wrap items-center gap-2 px-3 py-2.5 text-xs">
+      <div className="card flex flex-wrap items-center gap-2 px-3 py-2.5 text-xs max-md:gap-x-2 max-md:gap-y-2.5">
         <FilterSelect
           label="Catégorie"
           value={category}
@@ -373,12 +373,12 @@ export function WardrobeScreen() {
             label: GROUP_LABELS[k],
           }))}
         />
-        <label className="ml-auto flex items-center gap-1.5 text-muted">
+        <label className="flex min-h-11 items-center gap-2 text-muted md:ml-auto">
           <input
             type="checkbox"
             checked={showArchived}
             onChange={(e) => setShowArchived(e.target.checked)}
-            className="accent-ink focus-ring"
+            className="h-5 w-5 accent-ink focus-ring"
           />
           Archivées
         </label>
@@ -386,7 +386,7 @@ export function WardrobeScreen() {
 
       {selecting && (
         <div
-          className="card sticky top-[3.35rem] z-20 flex flex-wrap items-center gap-2 px-3 py-2 text-xs"
+          className="card z-20 flex flex-wrap items-center gap-2 px-3 py-2 text-xs max-md:fixed max-md:inset-x-0 max-md:bottom-[var(--app-tabbar)] max-md:rounded-none max-md:border-x-0 max-md:border-b-0 md:sticky md:top-[calc(var(--app-header)+env(safe-area-inset-top,0px))]"
           role="toolbar"
           aria-label="Gros tri"
         >
@@ -398,7 +398,7 @@ export function WardrobeScreen() {
           >
             {allVisibleSelected ? 'Retirer le visible' : 'Tout visible'}
           </button>
-          <p className="text-muted" aria-live="polite">
+          <p className="min-w-0 flex-1 text-muted" aria-live="polite">
             <span className="font-num tabular-nums text-ink">{selectedIds.length}</span>{' '}
             sélectionnée{selectedIds.length === 1 ? '' : 's'}
             {visibleIds.length > 0 ? ` · ${visibleSelectedCount}/${visibleIds.length} visibles` : ''}
@@ -408,7 +408,7 @@ export function WardrobeScreen() {
             type="button"
             onClick={() => setBulkConfirm(true)}
             disabled={selectedIds.length === 0}
-            className="btn btn-primary ml-auto focus-ring"
+            className="btn btn-primary max-md:w-full md:ml-auto focus-ring"
           >
             {selectedIds.length === 0
               ? 'Supprimer'
@@ -525,12 +525,12 @@ function FilterSelect({
   options: { value: string; label: string }[]
 }) {
   return (
-    <label className="flex items-center gap-1.5">
-      <span className="text-muted">{label}</span>
+    <label className="flex min-w-[calc(50%-0.25rem)] flex-1 items-center gap-1.5 sm:min-w-0 sm:flex-none">
+      <span className="shrink-0 text-muted">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="field-pill focus-ring"
+        className="field-pill min-w-0 flex-1 focus-ring"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

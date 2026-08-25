@@ -96,12 +96,12 @@ export function AtelierScreen() {
               : 'Clique une pièce pour l’assembler. Le score se recalcule à chaque geste.'}
           </p>
         </div>
-        <label className="flex items-center gap-1.5 text-xs">
+        <label className="flex min-h-11 items-center gap-2 text-xs">
           <input
             type="checkbox"
             checked={compatibleOnly}
             onChange={(e) => setCompatibleOnly(e.target.checked)}
-            className="accent-ink focus-ring"
+            className="h-5 w-5 accent-ink focus-ring"
           />
           Compatible seulement (score ≥ {SCORE.compatibleMin})
         </label>
@@ -113,8 +113,36 @@ export function AtelierScreen() {
         </p>
       )}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_min(42%,17.5rem)]">
         <div>
+          <div
+            className="mb-3 sticky top-[calc(var(--app-header)+env(safe-area-inset-top,0px))] z-10 flex items-center justify-between gap-3 rounded-ui border border-line bg-paper-2 px-3 py-2 md:hidden"
+            aria-live="polite"
+          >
+            <p
+              className={`font-num text-2xl tabular-nums leading-none tracking-tight ${evaluation.isBlocking ? 'text-danger' : 'text-ink'}`}
+            >
+              {evaluation.score}
+            </p>
+            <p className="min-w-0 flex-1 text-xs text-muted">
+              {selected.length} pièce{selected.length === 1 ? '' : 's'}
+              {evaluation.isBlocking ? ' · bloquant' : ''}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                document.getElementById('atelier-apercu')?.scrollIntoView({
+                  behavior: reduce ? 'auto' : 'smooth',
+                  block: 'start',
+                })
+              }}
+              className="text-xs text-ink underline-offset-2 hover:underline focus-ring"
+            >
+              Aperçu
+            </button>
+          </div>
+
           <div className="mb-3 flex gap-1 rounded-full bg-fill p-1 md:hidden" role="tablist" aria-label="Catégorie">
             {ATELIER_COLUMNS.map((col) => (
               <button
@@ -124,7 +152,7 @@ export function AtelierScreen() {
                 aria-selected={mobileCol === col}
                 onClick={() => setMobileCol(col)}
                 className={cx(
-                  'flex-1 rounded-full px-2 py-1.5 text-xs focus-ring',
+                  'flex min-h-11 flex-1 items-center justify-center rounded-full px-2 text-xs focus-ring',
                   mobileCol === col ? 'bg-ink text-paper' : 'text-ink hover:bg-paper-2',
                 )}
               >
@@ -133,7 +161,7 @@ export function AtelierScreen() {
             ))}
           </div>
 
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             {ATELIER_COLUMNS.map((col) => {
               const items = visibleInColumn(col)
               return (
@@ -202,7 +230,10 @@ export function AtelierScreen() {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-16">
+        <aside
+          id="atelier-apercu"
+          className="scroll-mt-[calc(var(--app-header)+env(safe-area-inset-top,0px)+0.5rem)] md:sticky md:top-[calc(var(--app-header)+env(safe-area-inset-top,0px)+0.5rem)]"
+        >
           <OutfitPreview garments={selected} evaluation={evaluation} />
           <div className="card mt-2 space-y-2 p-3">
             <input
@@ -221,7 +252,7 @@ export function AtelierScreen() {
             <button
               type="button"
               onClick={onSave}
-              className="btn btn-primary w-full focus-ring"
+              className="btn btn-primary min-h-11 w-full focus-ring"
             >
               {editing ? 'Mettre à jour la tenue' : 'Enregistrer la tenue'}
             </button>
@@ -235,7 +266,7 @@ export function AtelierScreen() {
                   setTagIds([])
                   clearEditOutfit()
                 }}
-                className="btn w-full text-xs text-muted focus-ring"
+                className="btn min-h-11 w-full text-xs text-muted focus-ring"
               >
                 {editing ? 'Annuler la modification' : 'Vider l’atelier'}
               </button>

@@ -97,7 +97,7 @@ export function OutfitsScreen() {
             type="button"
             onClick={() => setFilter(id)}
             aria-pressed={filter === id}
-            className={`chip focus-ring ${filter === id ? 'border-ink bg-ink text-paper' : 'border-line hover:bg-fill'}`}
+            className={`chip min-h-11 focus-ring ${filter === id ? 'border-ink bg-ink text-paper' : 'border-line hover:bg-fill'}`}
           >
             {label}
           </button>
@@ -193,7 +193,7 @@ function OutfitRow({
         >
           {liveScore}
         </p>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-48">
           <p className="truncate text-sm font-medium">{title}</p>
           <p className="text-[11px] text-muted">{lastWornLabel(last)}</p>
           {noTags && (
@@ -226,17 +226,17 @@ function OutfitRow({
             <TagPicker tags={tags} selected={outfit.tagIds ?? []} onChange={onTags} />
           </div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <button type="button" onClick={onWear} className="btn btn-primary text-xs focus-ring">
+        <div className="flex w-full flex-wrap gap-1.5 sm:w-auto sm:flex-col">
+          <button type="button" onClick={onWear} className="btn btn-primary min-h-11 flex-1 text-xs focus-ring sm:flex-none">
             Porté le
           </button>
-          <button type="button" onClick={onEdit} className="btn text-xs focus-ring">
+          <button type="button" onClick={onEdit} className="btn min-h-11 flex-1 text-xs focus-ring sm:flex-none">
             Modifier
           </button>
-          <button type="button" onClick={onDelete} className="btn text-xs focus-ring">
+          <button type="button" onClick={onDelete} className="btn min-h-11 flex-1 text-xs focus-ring sm:flex-none">
             Supprimer
           </button>
-          <button type="button" onClick={() => setOpen((v) => !v)} className="btn text-xs focus-ring">
+          <button type="button" onClick={() => setOpen((v) => !v)} className="btn min-h-11 w-full text-xs focus-ring sm:w-auto">
             {open ? 'Masquer le détail' : 'Pourquoi ce score'}
           </button>
         </div>

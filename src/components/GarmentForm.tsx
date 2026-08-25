@@ -167,7 +167,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
           {initial ? 'Modifier la pièce' : 'Nouvelle pièce'}
         </h2>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="text-xs text-muted hover:text-ink focus-ring">
+          <button type="button" onClick={onCancel} className="btn text-xs focus-ring">
             Annuler
           </button>
         )}
@@ -179,7 +179,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
           Colle l’URL d’un article (Uniqlo, Zara, COS, Chanel…) ou d’une photo. Nom, photo, type,
           marque et couleur se préremplissent — tu corriges si besoin.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <input
             type="url"
             value={link}
@@ -193,13 +193,13 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             placeholder="https://…"
             inputMode="url"
             autoComplete="url"
-            className="field min-w-0 flex-1 focus-ring"
+            className="field min-w-0 w-full flex-1 focus-ring"
           />
           <button
             type="button"
             onClick={() => void onImportLink()}
             disabled={importing || !link.trim()}
-            className="btn focus-ring disabled:opacity-40"
+            className="btn w-full focus-ring disabled:opacity-40 sm:w-auto"
           >
             {importing ? 'Lecture…' : 'Préremplir'}
           </button>
@@ -207,7 +207,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
         {importNote && <p className="mt-2 text-xs text-muted">{importNote}</p>}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs">
           <span className="mb-1 block text-muted">Nom</span>
           <input
@@ -330,7 +330,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
                   type="button"
                   onClick={() => toggleSeason(s)}
                   aria-pressed={on}
-                  className={`chip focus-ring ${on ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
+                  className={`chip min-h-11 focus-ring ${on ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
                 >
                   {s}
                 </button>
@@ -354,7 +354,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
                       type="button"
                       onClick={() => toggleMoment(m)}
                       aria-pressed={on}
-                      className={`chip focus-ring ${on ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
+                      className={`chip min-h-11 focus-ring ${on ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
                     >
                       {MOMENT_LABELS[m]}
                     </button>
@@ -367,14 +367,14 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
               </p>
             </>
           ) : (
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
               {([1, 2, 3] as Formality[]).map((f) => (
                 <button
                   key={f}
                   type="button"
                   onClick={() => setFormality(f)}
                   aria-pressed={formality === f}
-                  className={`chip focus-ring ${formality === f ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
+                  className={`chip min-h-11 focus-ring ${formality === f ? 'border-ink bg-ink text-paper' : 'hover:bg-fill'}`}
                 >
                   {f} {FORMALITY_LABELS[f]}
                 </button>
@@ -404,7 +404,7 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
             <button
               type="button"
               onClick={() => setPhotoDataUrl(undefined)}
-              className="text-xs text-muted hover:text-ink focus-ring"
+              className="btn text-xs focus-ring"
             >
               Retirer la photo
             </button>
@@ -425,8 +425,8 @@ export function GarmentForm({ initial, onSave, onCancel }: Props) {
 
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
 
-      <div className="mt-3 flex gap-2">
-        <button type="submit" className="btn btn-primary focus-ring">
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <button type="submit" className="btn btn-primary w-full focus-ring sm:w-auto">
           Enregistrer
         </button>
       </div>

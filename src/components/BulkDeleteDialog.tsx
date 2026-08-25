@@ -49,7 +49,7 @@ export function BulkDeleteDialog({ garments, outfits, onCancel, onConfirm }: Pro
           ensuite un remplacement pour ne pas laisser de tenues cassées.
         </p>
       )}
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button type="button" onClick={onCancel} className="btn focus-ring">
           Annuler
         </button>

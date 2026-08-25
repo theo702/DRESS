@@ -37,13 +37,13 @@ export function AnalysisScreen() {
             <h2 className="kicker mb-3">Répartition par couleur</h2>
             <ul className="card space-y-2 p-4">
               {colors.map((c) => (
-                <li key={c.id} className="flex items-center gap-2 text-sm">
+                <li key={c.id} className="flex min-w-0 items-center gap-2 text-sm">
                   <span
                     className="inline-block h-3 w-3 shrink-0 rounded-full border border-line"
                     style={{ backgroundColor: c.hex }}
                   />
-                  <span className="w-28 shrink-0 truncate">{c.label}</span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-fill">
+                  <span className="w-20 shrink-0 truncate sm:w-28">{c.label}</span>
+                  <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-fill">
                     <span
                       className="block h-full rounded-full"
                       style={{
@@ -62,9 +62,9 @@ export function AnalysisScreen() {
             <h2 className="kicker mb-3">Répartition par catégorie</h2>
             <ul className="card space-y-2 p-4">
               {categories.map((c) => (
-                <li key={c.id} className="flex items-center gap-2 text-sm">
-                  <span className="w-28 shrink-0">{c.label}</span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-fill">
+                <li key={c.id} className="flex min-w-0 items-center gap-2 text-sm">
+                  <span className="w-20 shrink-0 sm:w-28">{c.label}</span>
+                  <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-fill">
                     <span
                       className="block h-full rounded-full bg-ink"
                       style={{ width: `${(c.count / maxCat) * 100}%` }}
@@ -89,9 +89,9 @@ export function AnalysisScreen() {
             ) : (
               <ul className="card divide-y divide-line">
                 {unused.map((g) => (
-                  <li key={g.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                    <span>{g.name}</span>
-                    <span className="text-xs text-muted">candidate au tri</span>
+                  <li key={g.id} className="flex min-w-0 items-center justify-between gap-3 px-3 py-3 text-sm">
+                    <span className="min-w-0 truncate">{g.name}</span>
+                    <span className="shrink-0 text-xs text-muted">candidate au tri</span>
                   </li>
                 ))}
               </ul>
